@@ -175,6 +175,67 @@ export const EXHIBITS = [
     ],
     play: 'CONQUEST: arrows move the blinking army one square, A makes it wait. Capture every enemy city (X).',
   },
+  // ---- The Arcade Boom: fourth room, north doorway (clockwise from the door) ----
+  {
+    id: 'nightroad', year: 1976, title: 'Driving at Night', machine: 'arcadeDrive', game: 'nightroad',
+    pos: [-12.3, 0, -11], rot: Math.PI / 2,
+    short: 'The road ahead, seen from the driver\'s seat.',
+    plaque: [
+      'Atari\'s Night Driver (1976) is often called the first first-person driving game. The road itself was never drawn: only the white reflector posts on each side, rushing toward you in the dark.',
+      'The car wasn\'t drawn either. It was a printed plastic insert laid under the screen. Players had a steering wheel, a gas pedal and a gear shift, and a limited time to drive as far as they could.',
+    ],
+    play: 'NIGHT ROAD: Left/Right steer, A or Up accelerates, Down brakes. Stay between the posts and beat the clock.',
+  },
+  {
+    id: 'moonlander', year: 1979, title: 'Touchdown', machine: 'arcadeMoon', game: 'moonlander',
+    pos: [-12.3, 0, -16.5], rot: Math.PI / 2,
+    short: 'Atari\'s first game drawn with lines instead of pixels.',
+    plaque: [
+      'Lunar Lander (1979) was Atari\'s first vector game: its monitor drew sharp, glowing lines rather than rows of pixels. The idea dated back to a 1969 text game called Lunar.',
+      'It sold modestly, and Atari soon stopped making it to build Asteroids, which used the same vector hardware. The first few hundred Asteroids machines shipped in Lunar Lander cabinets.',
+    ],
+    play: 'MOON LANDER: Left/Right tilt, Up or A fires the engine. Land slowly and upright on a flat pad. Narrow pads score more.',
+  },
+  {
+    id: 'rockfield', year: 1979, title: 'Rocks in Space', machine: 'arcadeRocks', game: 'rockfield',
+    pos: [-10, 0, -21], rot: 0,
+    short: 'Atari\'s best-selling arcade game, drawn in glowing vectors.',
+    plaque: [
+      'Asteroids (1979), by Ed Logg and Dominic Walsh, put players in a tiny ship surrounded by drifting rocks that split apart when shot. The screen wrapped at every edge.',
+      'It displaced Space Invaders in popularity in the United States and became Atari\'s best-selling arcade game of all time, with over 70,000 units sold.',
+    ],
+    play: 'ROCK FIELD: Left/Right rotate, Up thrusts, A fires, Down jumps to hyperspace.',
+  },
+  {
+    id: 'cityshield', year: 1980, title: 'Defend the Cities', machine: 'arcadeCity', game: 'cityshield',
+    pos: [-4, 0, -21], rot: 0,
+    short: 'A trackball, three missile bases and six cities to protect.',
+    plaque: [
+      'In Missile Command (1980), players used a trackball to move a crosshair and fired from three missile batteries, creating explosions in the sky to stop incoming missiles before they hit six cities.',
+      'Its designer, Dave Theurer, reportedly had nightmares about the cities being destroyed while he was making it.',
+    ],
+    play: 'CITY SHIELD: arrows move the crosshair, A fires from the nearest base. Catch missiles in the blasts.',
+  },
+  {
+    id: 'gardenpest', year: 1981, title: 'Bugs in the Garden', machine: 'arcadePest', game: 'gardenpest',
+    pos: [-0.7, 0, -16.5], rot: -Math.PI / 2,
+    short: 'Pastel colours, a trackball and a game made for everyone.',
+    plaque: [
+      'Centipede (1981) was designed by Dona Bailey and Ed Logg. Bailey was one of the few women programming arcade games, and she pushed for the trackball and a palette of pastel colours.',
+      'It became one of Atari\'s most successful coin-op games and one of the first widely played by women and girls.',
+    ],
+    play: 'GARDEN PEST: arrows move, hold A to fire. Hit the crawler\'s segments; each one becomes a mushroom.',
+  },
+  {
+    id: 'hopacross', year: 1981, title: 'Across the Road', machine: 'arcadeHop', game: 'hopacross',
+    pos: [-0.7, 0, -11], rot: -Math.PI / 2,
+    short: 'A game about crossing the road, for players of any age.',
+    plaque: [
+      'Konami\'s Frogger (1981), published in North America by Sega/Gremlin, asked players to guide frogs home across a busy road and then a river, hopping onto floating logs and turtles.',
+      'At a time when most arcade hits were about space, it was about crossing a road, and it became one of the top-grossing arcade games in North America in 1981.',
+    ],
+    play: 'HOP ACROSS: each arrow press is one hop. Cross the road, ride the logs and turtles, and fill all five nests.',
+  },
   // ---- The Golden Age: back row ------------------------------------------------------------
   {
     id: 'volley', year: 1972, title: 'The Living-Room Game', machine: 'tv', game: 'volley',
@@ -234,8 +295,9 @@ export const WINGS = [
   { id: 'pioneers', title: 'The Pioneers', years: '1947–1962' },
   { id: 'experiments', title: 'Experiments & Prototypes', years: '1948–1977' },
   { id: 'mainframe', title: 'The Mainframe Era', years: '1951–1976' },
+  { id: 'arcade', title: 'The Arcade Boom', years: '1976–1981' },
   { id: 'golden', title: 'The Golden Age', years: '1972–1989' },
 ];
 
 // Each exhibit's wing follows from where it stands (east room, west room, or the main hall's two rows).
-for (const ex of EXHIBITS) ex.wing ??= ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';
+for (const ex of EXHIBITS) ex.wing ??= ex.pos[2] < -7 ? 'arcade' : ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';

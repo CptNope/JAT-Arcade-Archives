@@ -2,7 +2,7 @@
 
 A walk-through 3D museum of video game history, built with three.js. Every machine in the hall is playable.
 
-Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**, and one on the west wall to **Experiments & Prototypes (1948–1977)**.
+Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**, one on the west wall to **Experiments & Prototypes (1948–1977)**, and one on the north wall to **The Arcade Boom (1976–1981)**.
 
 | Year | Exhibit | Machine model | Playable game |
 |---|---|---|---|
@@ -23,6 +23,12 @@ Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The
 | 1964 | The Sumerian Game | typewriter terminal | **Sumerian Steward** (reconstruction) |
 | 1968 | The Brown Box | prototype box, knob controllers, portable TV | **Chase** (reconstruction) |
 | 1977 | Empire | video terminal | **Conquest** |
+| 1976 | Night Driver *(Arcade Boom room)* | upright with steering wheel | **Night Road** |
+| 1979 | Lunar Lander | vector upright | **Moon Lander** |
+| 1979 | Asteroids | vector upright | **Rock Field** |
+| 1980 | Missile Command | trackball upright | **City Shield** |
+| 1981 | Centipede | trackball upright | **Garden Pest** |
+| 1981 | Frogger | joystick upright | **Hop Across** |
 | 1972 | Home TV games | wood-grain TV + console + paddles | **Volley** |
 | 1978 | Arcade fixed shooters | upright cabinet | **Star Siege** |
 | 1980 | Maze-chase cocktail tables | cocktail table | **Gem Runner** |
@@ -53,7 +59,7 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 ## Works on every device
 
 - **Adaptive quality.** In Auto mode the resolution, and then the glow, drop when the frame rate does. You can also pick High or Low in ⚙ settings (remembered per browser).
-- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 22 exhibits at once and shaders never recompile mid-walk.
+- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 28 exhibits at once and shaders never recompile mid-walk.
 - **Offscreen machines pause.** Only screens in view, within 26 m, run their demos and upload frames.
 - **2D mode.** `src/main.js` boots the 3D museum only when WebGL works. If WebGL is missing, the three.js download fails, or the GPU drops its context, every game opens in a plain 2D arcade (`src/flat.js`, which never loads three.js). Visitors can also choose it in settings or link to `#2d`.
 - **Zoom.** While playing, the game can fill the screen with crisp, whole-number pixel scaling. It's on by default on small screens.

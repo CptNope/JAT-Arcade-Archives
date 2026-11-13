@@ -21,5 +21,11 @@ import { Pool } from './games/pool.js';
 import { Sumer } from './games/sumer.js';
 import { Chase } from './games/chase.js';
 import { Conquest } from './games/empire.js';
+import { NightRoad } from './games/nightroad.js';
+import { RockField } from './games/rockfield.js';
+import { MoonLander } from './games/moonlander.js';
+import { CityShield } from './games/cityshield.js';
+import { GardenPest } from './games/gardenpest.js';
+import { HopAcross } from './games/hopacross.js';
 
-export const GAMES = { turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
+export const GAMES = { nightroad: NightRoad, rockfield: RockField, moonlander: MoonLander, cityshield: CityShield, gardenpest: GardenPest, hopacross: HopAcross, turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };

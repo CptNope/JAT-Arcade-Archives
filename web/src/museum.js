@@ -178,6 +178,8 @@ function wallSign(text, { glow, fg, w, x, y, z, ry, h }) {
 
 const WING2 = { x0: HALL.x, x1: HALL.x + 16, z0: -HALL.z, z1: HALL.z };
 const WING3 = { x0: -HALL.x - 16, x1: -HALL.x, z0: -HALL.z, z1: HALL.z };
+const WING4 = { x0: -HALL.x, x1: -HALL.x + 16, z0: -HALL.z - 16, z1: -HALL.z };
+const NORTH_DOOR_X = -7;
 // Where the visitor may stand: each room shrunk by a margin, plus the doorway between them.
 const WALKABLE = [
   { x0: -HALL.x + 0.35, x1: HALL.x - 0.35, z0: -HALL.z + 0.35, z1: HALL.z - 0.35 },
@@ -185,12 +187,14 @@ const WALKABLE = [
   { x0: HALL.x - 0.6, x1: HALL.x + 0.6, z0: -DOOR.w / 2 + 0.3, z1: DOOR.w / 2 - 0.3 },
   { x0: WING3.x0 + 0.35, x1: WING3.x1 - 0.35, z0: WING3.z0 + 0.35, z1: WING3.z1 - 0.35 },
   { x0: -HALL.x - 0.6, x1: -HALL.x + 0.6, z0: -DOOR.w / 2 + 0.3, z1: DOOR.w / 2 - 0.3 },
+  { x0: WING4.x0 + 0.35, x1: WING4.x1 - 0.35, z0: WING4.z0 + 0.35, z1: WING4.z1 - 0.35 },
+  { x0: NORTH_DOOR_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
 ];
 const walkable = (x, z) => WALKABLE.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 
 let tapeReels = [];
 function buildHall() {
-  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0 } });
+  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: NORTH_DOOR_X } });
   // title + wing signs
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.15),
     new THREE.MeshBasicMaterial({ map: labelTexture('JAT ARCADE ARCHIVES', { w: 1600, h: 256, bg: 'rgba(0,0,0,0)', glow: '#ff2bd6', fg: '#ffe14d', font: '900 150px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
@@ -198,7 +202,16 @@ function buildHall() {
   wallSign('THE PIONEERS · 1947–1962', { glow: '#ffb347', fg: '#fff3d0', w: 6.4, x: 0, y: 3.05, z: HALL.z - 0.03, ry: Math.PI });
   wallSign('THE GOLDEN AGE · 1972–1989', { glow: '#00e5ff', fg: '#ffffff', w: 4.2, x: 0, y: 2.4, z: -HALL.z + 0.03, ry: 0 });
   wallSign('THE MAINFRAME ERA  →', { glow: '#7dff95', fg: '#ffffff', w: 3.2, x: HALL.x - 0.03, y: 3.2, z: 0, ry: -Math.PI / 2 });
+  wallSign('THE ARCADE BOOM  ↑', { glow: '#ff5252', fg: '#ffffff', w: 3.0, x: NORTH_DOOR_X, y: 3.25, z: -HALL.z + 0.03, ry: 0 });
   wallSign('←  EXPERIMENTS & PROTOTYPES', { glow: '#ffb347', fg: '#ffffff', w: 3.6, x: -HALL.x + 0.03, y: 3.2, z: 0, ry: Math.PI / 2 });
+
+  // ---- wing 4: the arcade boom (a dark arcade with neon) ----
+  const arcadeCarpet = carpetTexture(); arcadeCarpet.repeat.set(5, 5);
+  buildRoom({ ...WING4, floor: new THREE.MeshStandardMaterial({ map: arcadeCarpet, roughness: 0.95, color: 0xb0b0ff }), wall: 0x0c0a18, ceil: 0x07060e, trims: [0xff5252, 0xffeb3b, 0x4cc9f0], doors: { south: NORTH_DOOR_X } });
+  wallSign('THE ARCADE BOOM · 1976–1981', { glow: '#ff5252', fg: '#ffeb3b', w: 6.2, x: (WING4.x0 + WING4.x1) / 2, y: 3.2, z: WING4.z0 + 0.03, ry: 0 });
+  wallSign('↓  MAIN HALL', { glow: '#ff2bd6', fg: '#ffffff', w: 2.2, x: NORTH_DOOR_X, y: 3.25, z: WING4.z1 - 0.03, ry: Math.PI });
+  wallSign('INSERT COIN', { glow: '#69f0ae', fg: '#ffffff', w: 2.6, x: WING4.x0 + 0.03, y: 3.1, z: -19, ry: Math.PI / 2 });
+  wallSign('HIGH SCORES', { glow: '#ffeb3b', fg: '#ffffff', w: 2.6, x: WING4.x1 - 0.03, y: 3.1, z: -19, ry: -Math.PI / 2 });
 
   // ---- wing 3: experiments & prototypes (a wood-panelled research lab) ----
   const parquet = woodFloorTexture(); parquet.repeat.set(8, 7);
@@ -288,7 +301,7 @@ for (const ex of EXHIBITS) {
 
   const lectWorld = new THREE.Vector3(); lect.getWorldPosition(lectWorld);
   built.screen.geometry.computeBoundingSphere();
-  exhibits.push({ ...ex, game, screen: built.screen, radius: built.radius, root, lectern: lectWorld, frameAcc: 0, room: roomOf(ex.pos[0]) });
+  exhibits.push({ ...ex, game, screen: built.screen, radius: built.radius, root, lectern: lectWorld, frameAcc: 0, room: roomOf(ex.pos[0], ex.pos[2]) });
 }
 
 // ---------- lights: a fixed pool, re-aimed at whichever room the visitor is in ----------------
@@ -297,8 +310,9 @@ const ROOM_POINTS = {
   hall: [[-10, 3.4, 3, 0xff2bd6, 6], [0, 3.4, 3, 0x00e5ff, 6], [10, 3.4, 3, 0x7a5cff, 6]],
   mainframe: [[18, 3.4, 0, 0x9fe8ff, 6], [27, 3.4, 0, 0x7dff95, 6], [22.5, 3.4, 0, 0xdff6ff, 2]],
   experiments: [[-17.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-22.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-27.5, HALL.h - 0.8, 0, 0xffd8a0, 5]],
+  arcade: [[-10, 3.4, -12, 0xff5252, 6], [-4, 3.4, -18, 0x4cc9f0, 6], [-6.5, 3.4, -15, 0xffeb3b, 3]],
 };
-const SPOT_POOL = Math.max(...['hall', 'mainframe', 'experiments'].map(r => exhibits.filter(e => e.room === r).length));
+const SPOT_POOL = Math.max(...['hall', 'mainframe', 'experiments', 'arcade'].map(r => exhibits.filter(e => e.room === r).length));
 const spots = Array.from({ length: SPOT_POOL }, () => { const sp = new THREE.SpotLight(0xfff1dd, 0, 9, 0.5, 0.65, 1.4); scene.add(sp, sp.target); return sp; });
 const points = Array.from({ length: 3 }, () => { const p = new THREE.PointLight(0xffffff, 0, 12, 1.6); scene.add(p); return p; });
 let litRoom = null;
@@ -314,7 +328,7 @@ function lightRoom(room) {
   });
   points.forEach((p, k) => { const [x, y, z, c, i] = ROOM_POINTS[room][k]; p.position.set(x, y, z); p.color.set(c); p.intensity = i; });
 }
-function roomOf(x) { return x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
+function roomOf(x, z = 0) { return z < -HALL.z ? 'arcade' : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
 
 // ---------- UI --------------------------------------------------------------------------------
 const focusEl = $('#focus');
@@ -622,7 +636,7 @@ function frame() {
 
   if (tween) stepTween(dt);
   else if (active < 0 && !modal) walk(dt, gp);
-  lightRoom(roomOf(camera.position.x));
+  lightRoom(roomOf(camera.position.x, camera.position.z));
 
   // only machines the visitor can see run their attract demos and upload new frames
   camera.updateMatrixWorld();
