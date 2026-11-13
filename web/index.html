@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JAT Arcade Archives</title>
 <meta name="description" content="Walk through a 3D museum of computer and video game history and play every machine.">
 <meta name="theme-color" content="#0b0820">
@@ -12,8 +12,10 @@
 <style>
   :root { --ink:#f4f1ff; --muted:#a9a3c9; --panel:rgba(14,10,36,.86); --line:rgba(255,255,255,.12); --pink:#ff2bd6; --cyan:#00e5ff; --yellow:#ffe14d; }
   * { box-sizing: border-box; }
-  html, body { margin:0; height:100%; background:#05030f; color:var(--ink); font-family:'Space Grotesk', system-ui, sans-serif; overflow:hidden; }
-  #app { position:fixed; inset:0; }
+  html, body { margin:0; height:100%; background:#05030f; color:var(--ink); font-family:'Space Grotesk', system-ui, sans-serif; overflow:hidden; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; -webkit-text-size-adjust:100%; }
+  :root { --sat:env(safe-area-inset-top,0px); --sar:env(safe-area-inset-right,0px); --sab:env(safe-area-inset-bottom,0px); --sal:env(safe-area-inset-left,0px); }
+  button, .touch, #zoom { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+  #app { position:fixed; inset:0; height:100dvh; }
   #app canvas { display:block; width:100%; height:100%; touch-action:none; cursor:grab; }
   #app canvas:active { cursor:grabbing; }
   .pixel { font-family:'Press Start 2P', monospace; letter-spacing:.02em; }
@@ -33,11 +35,11 @@
   #loading { margin-top:1em; font-size:12px; color:var(--muted); }
 
   /* top bar */
-  #top { position:fixed; top:12px; left:12px; right:12px; display:flex; gap:8px; align-items:flex-start; z-index:10; pointer-events:none; }
+  #top { position:fixed; top:calc(12px + var(--sat)); left:calc(12px + var(--sal)); right:calc(12px + var(--sar)); display:flex; gap:8px; align-items:flex-start; z-index:10; pointer-events:none; }
   #top > * { pointer-events:auto; }
   #brand { font-size:11px; color:var(--yellow); padding:.8em 1em; background:var(--panel); border:1px solid var(--line); border-radius:10px; backdrop-filter:blur(6px); }
   #top .spacer { flex:1; }
-  #menu { position:fixed; top:64px; right:12px; width:min(340px, calc(100% - 24px)); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:8px; z-index:12; backdrop-filter:blur(8px); display:none; }
+  #menu { position:fixed; top:calc(64px + var(--sat)); right:calc(12px + var(--sar)); width:min(340px, calc(100% - 24px)); max-height:calc(100dvh - 90px - var(--sat)); overflow:auto; overscroll-behavior:contain; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:8px; z-index:12; backdrop-filter:blur(8px); display:none; }
   #menu.open { display:block; }
   #menu button { display:flex; width:100%; text-align:left; gap:12px; align-items:center; background:none; border:0; border-radius:10px; padding:10px; }
   #menu button:hover, #menu button:focus-visible { background:rgba(255,255,255,.07); outline:none; }
@@ -45,7 +47,7 @@
   #menu small { display:block; color:var(--muted); }
 
   /* focus card */
-  #focus { position:fixed; left:50%; bottom:22px; transform:translate(-50%, 20px); opacity:0; transition:.25s; width:min(520px, calc(100% - 24px)); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; z-index:10; backdrop-filter:blur(8px); pointer-events:none; }
+  #focus { position:fixed; left:50%; bottom:calc(22px + var(--sab)); transform:translate(-50%, 20px); opacity:0; transition:.25s; width:min(520px, calc(100% - 24px)); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; z-index:10; backdrop-filter:blur(8px); pointer-events:none; }
   #focus.show { opacity:1; transform:translate(-50%,0); pointer-events:auto; }
   #focus .yr { font-size:11px; color:var(--cyan); }
   #focus h2 { margin:.35em 0 .2em; font-size:20px; }
@@ -64,7 +66,7 @@
   #plaque .note { font-size:12px; color:var(--muted); }
 
   /* play mode */
-  #playbar { position:fixed; top:12px; left:50%; transform:translateX(-50%); display:none; gap:10px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px 8px 14px; z-index:11; font-size:13px; max-width:calc(100% - 24px); }
+  #playbar { position:fixed; top:calc(12px + var(--sat)); left:50%; transform:translateX(-50%); display:none; gap:10px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px 8px 14px; z-index:11; font-size:13px; max-width:calc(100% - 24px); }
   body.playing #playbar { display:flex; }
   body.playing #top, body.playing #focus { display:none; }
   #playbar span { color:var(--muted); }
@@ -75,20 +77,72 @@
   body.is-touch.playing .touch.walk { display:none; }
   body.is-touch.playing .touch.play { display:flex; }
   body.is-touch.playing #playbar span { display:none; }
-  #stick { position:fixed; left:24px; bottom:24px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.18); z-index:9; touch-action:none; }
+  #stick { position:fixed; left:calc(24px + var(--sal)); bottom:calc(24px + var(--sab)); width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.18); z-index:9; touch-action:none; }
   #stick i { position:absolute; left:50%; top:50%; width:52px; height:52px; margin:-26px; border-radius:50%; background:rgba(0,229,255,.35); border:2px solid var(--cyan); }
   body.is-touch #focus { left:auto; right:12px; bottom:12px; transform:translateY(20px); width:min(380px, calc(100% - 180px)); padding:10px 12px; }
   body.is-touch #focus.show { transform:none; }
   body.is-touch #focus h2 { font-size:16px; } body.is-touch #focus p { font-size:13px; margin-bottom:.5em; }
   body.is-touch #focus .hint { display:none; }
   body.is-touch #playbar { left:auto; right:12px; transform:none; padding:6px; }
-  #pad { position:fixed; left:0; right:0; bottom:18px; justify-content:space-between; align-items:flex-end; padding:0 18px; z-index:12; pointer-events:none; }
+  #pad { position:fixed; left:0; right:0; bottom:calc(18px + var(--sab)); justify-content:space-between; align-items:flex-end; padding:0 calc(18px + var(--sar)) 0 calc(18px + var(--sal)); z-index:12; pointer-events:none; }
   #pad > * { pointer-events:auto; }
-  .dpad { display:grid; grid-template-columns:repeat(3, 52px); grid-template-rows:repeat(3, 52px); gap:4px; }
+  .dpad { --k:clamp(44px, 12vmin, 60px); display:grid; grid-template-columns:repeat(3, var(--k)); grid-template-rows:repeat(3, var(--k)); gap:4px; }
   .dpad button, .abtn { background:rgba(30,22,70,.8); border:2px solid rgba(255,255,255,.22); border-radius:12px; font-size:20px; touch-action:none; user-select:none; -webkit-user-select:none; }
   .dpad button.on, .abtn.on { background:rgba(0,229,255,.35); border-color:var(--cyan); }
-  .abtn { width:84px; height:84px; border-radius:50%; font-family:'Press Start 2P', monospace; font-size:16px; background:rgba(176,24,154,.75); }
+  .abtn { width:clamp(68px, 18vmin, 92px); height:clamp(68px, 18vmin, 92px); border-radius:50%; font-family:'Press Start 2P', monospace; font-size:16px; background:rgba(176,24,154,.75); }
   @media (prefers-reduced-motion: reduce) { #focus, #intro { transition:none; } }
+
+  /* settings */
+  #settings { position:fixed; top:calc(64px + var(--sat)); right:calc(12px + var(--sar)); width:min(300px, calc(100% - 24px)); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; z-index:12; backdrop-filter:blur(8px); }
+  #settings h3 { margin:0 0 8px; font-size:13px; color:var(--muted); font-weight:600; }
+  #settings .seg { display:flex; gap:6px; margin-bottom:12px; }
+  #settings .seg button { flex:1; padding:.5em; }
+  #settings [aria-pressed="true"] { border-color:var(--cyan); background:#2b2370; }
+  #settings p { font-size:12px; color:var(--muted); margin:8px 0 0; }
+  /* zoomed game during play */
+  #zoom { position:fixed; inset:0; width:100%; height:100%; display:none; background:#000; z-index:8; image-rendering:pixelated; touch-action:none; }
+  body.zoomed #zoom { display:block; }
+  /* short landscape phones: compact UI */
+  @media (max-height: 460px) {
+    #brand { display:none; }
+    #focus { padding:8px 10px; } #focus h2 { font-size:15px; margin:.2em 0; } #focus p { display:none; }
+    #playbar { font-size:11px; }
+  }
+  /* 2D mode */
+  body.flat-mode #app, body.flat-mode #top, body.flat-mode #focus, body.flat-mode #playbar, body.flat-mode .touch, body.flat-mode #menu, body.flat-mode #settings, body.flat-mode #zoom { display:none !important; }
+  body.flat-mode { overflow:auto; }
+  #flat { min-height:100dvh; padding:calc(14px + var(--sat)) calc(14px + var(--sar)) calc(14px + var(--sab)) calc(14px + var(--sal)); box-sizing:border-box; background:radial-gradient(ellipse at 50% 0%, #1d1450, #05030f 60%); }
+  .flat-head { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .flat-head .brand { color:var(--yellow); font-size:12px; }
+  .flat-head .spacer { flex:1; }
+  .flat-reason { background:rgba(255,225,77,.08); border:1px solid rgba(255,225,77,.3); border-radius:10px; padding:10px 12px; color:#f3e6b0; }
+  .flat-list h2 { font-size:15px; color:var(--cyan); margin:20px 0 10px; font-weight:600; }
+  .flat-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap:10px; }
+  .flat-card { text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; display:grid; gap:4px; }
+  .flat-card:hover, .flat-card:focus-visible { border-color:var(--cyan); outline:none; }
+  .flat-card .yr { color:var(--cyan); font-size:10px; }
+  .flat-card small { color:var(--muted); }
+  #flat.playing { height:100dvh; overflow:hidden; display:flex; flex-direction:column; }
+  #flat.playing .flat-head, #flat.playing .flat-reason { display:none; }
+  .flat-play:not([hidden]) { display:flex; flex-direction:column; flex:1; min-height:0; gap:8px; }
+  .flat-bar { display:flex; gap:8px; align-items:center; }
+  .flat-bar strong { flex:1; text-align:center; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .flat-stage { flex:1; min-height:120px; display:grid; place-items:center; }
+  .flat-screen { image-rendering:pixelated; background:#000; border-radius:6px; box-shadow:0 0 0 2px #1c1545, 0 10px 40px rgba(0,0,0,.6); touch-action:none; }
+  .flat-about { max-height:30dvh; overflow:auto; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:4px 14px; font-size:14px; line-height:1.55; color:#d9d4f5; }
+  .flat-pad { display:none; justify-content:space-between; align-items:flex-end; }
+  body.is-touch .flat-pad, .no-hover .flat-pad { display:flex; }
+  @media (hover: none) { .flat-pad { display:flex; } }
+  .flat-pad .dpad button.on, .flat-pad .abtn.on { background:rgba(0,229,255,.35); border-color:var(--cyan); }
+  @media (orientation: landscape) and (max-height: 520px) {
+    #flat.playing .flat-play { display:grid !important; grid-template-columns:auto 1fr auto; grid-template-rows:auto 1fr; }
+    #flat.playing .flat-bar { grid-column:1 / -1; }
+    #flat.playing .flat-pad { display:contents; }
+    #flat.playing .flat-pad .dpad { grid-column:1; grid-row:2; align-self:end; }
+    #flat.playing .flat-stage { grid-column:2; grid-row:2; }
+    #flat.playing .flat-pad .abtn { grid-column:3; grid-row:2; align-self:end; }
+    #flat.playing .flat-about { position:absolute; inset:60px 20px 20px; max-height:none; z-index:2; }
+  }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
 </style>
 <script type="importmap">
@@ -121,8 +175,19 @@
   <div id="brand" class="pixel">JAT ARCADE ARCHIVES</div>
   <div class="spacer"></div>
   <button class="btn" id="sound" aria-pressed="true" title="Sound on/off">🔊</button>
+  <button class="btn" id="settingsBtn" aria-expanded="false" aria-controls="settings" title="Settings">⚙</button>
   <button class="btn" id="menuBtn" aria-expanded="false" aria-controls="menu">Exhibits</button>
 </div>
+<section id="settings" hidden aria-label="Settings">
+  <h3>Graphics quality</h3>
+  <div class="seg" role="group" aria-label="Graphics quality">
+    <button class="btn" data-q="auto" aria-pressed="true">Auto</button>
+    <button class="btn" data-q="high" aria-pressed="false">High</button>
+    <button class="btn" data-q="low" aria-pressed="false">Low</button>
+  </div>
+  <button class="btn" id="flatBtn" style="width:100%">Play in 2D instead</button>
+  <p>Auto lowers the resolution and glow on slower devices to keep things smooth. 2D mode lists every machine without the 3D hall.</p>
+</section>
 <nav id="menu" aria-label="Exhibits"></nav>
 
 <div id="focus" role="region" aria-live="polite">
@@ -147,7 +212,8 @@
   </article>
 </div>
 
-<div id="playbar"><span id="playHelp"></span><button class="btn" id="exitBtn">Stand up ✕</button></div>
+<canvas id="zoom" aria-label="Game screen, zoomed"></canvas>
+<div id="playbar"><span id="playHelp"></span><button class="btn" id="zoomBtn" aria-pressed="false">Zoom</button><button class="btn" id="exitBtn">Stand up ✕</button></div>
 
 <div id="stick" class="touch walk" aria-hidden="true"><i></i></div>
 <div id="pad" class="touch play" aria-hidden="true">
@@ -160,5 +226,16 @@
 </div>
 
 <script type="module" src="src/main.js"></script>
+<script nomodule>
+  document.getElementById('loading').textContent = 'This browser is too old to run the museum. Please try a current version of Chrome, Edge, Firefox or Safari.';
+</script>
+<script>
+  // if nothing has started after a while (blocked scripts, very slow network), say so instead of spinning forever
+  setTimeout(function () {
+    if (window.__jatBooted) return;
+    var l = document.getElementById('loading');
+    if (l && !l.textContent) l.innerHTML = 'Still loading. Check your connection, then <a href="" style="color:#00e5ff">reload</a>.';
+  }, 20000);
+</script>
 </body>
 </html>
