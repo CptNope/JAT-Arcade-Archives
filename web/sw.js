@@ -1,5 +1,5 @@
 // Offline cache for the PWA build. Bump VERSION whenever files change.
-const VERSION = 'jat-arcade-v2';
+const VERSION = 'jat-arcade-v3';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icons/icon.svg',
   './src/main.js', './src/machines.js', './src/crt.js', './src/sfx.js', './src/exhibits.js',
@@ -14,11 +14,16 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// cache-first for everything (app shell, three.js from the CDN, fonts); fill the cache as we go
+// Own files: network-first, so a new deploy shows up right away; the cache is the offline fallback.
+// CDN files (three.js, fonts) are versioned URLs: cache-first.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+  const sameOrigin = new URL(e.request.url).origin === self.location.origin;
+  const save = (res) => {
     if (res.ok || res.type === 'opaque') { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); }
     return res;
-  })));
+  };
+  e.respondWith(sameOrigin
+    ? fetch(e.request).then(save).catch(() => caches.match(e.request))
+    : caches.match(e.request).then((hit) => hit || fetch(e.request).then(save)));
 });

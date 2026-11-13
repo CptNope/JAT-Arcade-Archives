@@ -33,6 +33,11 @@ cd web && python3 -m http.server 8080
 
 three.js r187 loads from jsDelivr through an import map in `web/index.html`.
 
+### GitHub Pages
+`.github/workflows/pages.yml` deploys `web/` on every push to `main` that touches it.
+One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths are relative, so it also works from a subfolder or a custom domain.
+
 ## Controls
 
 | | Desktop | Touch | Gamepad |
