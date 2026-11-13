@@ -231,8 +231,11 @@ export const EXHIBITS = [
 export const NOTE = 'Machines here are original era-style models, not replicas of real products. Every game is an original recreation of its genre, written for this museum.';
 export const RECON_NOTE = 'Modern reconstruction: the original no longer runs or survives only in records, so the rules and controls here are our interpretation, not an emulation.';
 export const WINGS = [
-  { title: 'THE PIONEERS · 1947–1962', side: 'front' },
-  { title: 'THE GOLDEN AGE · 1972–1989', side: 'back' },
-  { title: 'THE MAINFRAME ERA · 1951–1976', side: 'east room' },
-  { title: 'EXPERIMENTS & PROTOTYPES · 1948–1977', side: 'west room' },
+  { id: 'pioneers', title: 'The Pioneers', years: '1947–1962' },
+  { id: 'experiments', title: 'Experiments & Prototypes', years: '1948–1977' },
+  { id: 'mainframe', title: 'The Mainframe Era', years: '1951–1976' },
+  { id: 'golden', title: 'The Golden Age', years: '1972–1989' },
 ];
+
+// Each exhibit's wing follows from where it stands (east room, west room, or the main hall's two rows).
+for (const ex of EXHIBITS) ex.wing ??= ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';

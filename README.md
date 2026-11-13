@@ -50,6 +50,15 @@ three.js r187 loads from jsDelivr through an import map in `web/index.html`.
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths are relative, so it also works from a subfolder or a custom domain.
 
+## Works on every device
+
+- **Adaptive quality.** In Auto mode the resolution, and then the glow, drop when the frame rate does. You can also pick High or Low in ⚙ settings (remembered per browser).
+- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 22 exhibits at once and shaders never recompile mid-walk.
+- **Offscreen machines pause.** Only screens in view, within 26 m, run their demos and upload frames.
+- **2D mode.** `src/main.js` boots the 3D museum only when WebGL works. If WebGL is missing, the three.js download fails, or the GPU drops its context, every game opens in a plain 2D arcade (`src/flat.js`, which never loads three.js). Visitors can also choose it in settings or link to `#2d`.
+- **Zoom.** While playing, the game can fill the screen with crisp, whole-number pixel scaling. It's on by default on small screens.
+- **Phones.** Safe areas for notches, dynamic viewport height, resize on rotation and toolbar changes, no accidental zoom or scroll, controls sized to the screen. Rendering pauses in background tabs.
+
 ## Controls
 
 | | Desktop | Touch | Gamepad |
@@ -70,7 +79,10 @@ web/
   manifest.webmanifest  PWA manifest
   sw.js                 offline cache (cache-first)
   src/
-    main.js             hall, lighting, bloom, walking, camera moves, input, UI
+    main.js             boot: picks 3D or 2D (never imports three.js)
+    museum.js           3D hall, lighting, bloom, walking, camera moves, input, UI, adaptive quality
+    flat.js             2D arcade mode
+    registry.js         every game by id
     exhibits.js         exhibit catalogue (shared data format)
     machines.js         procedural 3D machine builders
     crt.js              CRT / LCD / lamp-panel screen shader

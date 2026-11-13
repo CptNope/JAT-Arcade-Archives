@@ -1,0 +1,25 @@
+// Every playable game, by id. Kept free of three.js so the 2D mode can load it on any device.
+import { Volley } from './games/volley.js';
+import { StarSiege } from './games/starsiege.js';
+import { GemRunner } from './games/gemrunner.js';
+import { Serpent } from './games/serpent.js';
+import { Brickfall } from './games/brickfall.js';
+import { TargetBeam } from './games/targetbeam.js';
+import { Bertie } from './games/bertie.js';
+import { Oxo } from './games/oxo.js';
+import { Tennis } from './games/tennis.js';
+import { Spacewar } from './games/spacewar.js';
+import { Nimrod } from './games/nimrod.js';
+import { BouncingBall } from './games/bouncingball.js';
+import { StarPatrol } from './games/starpatrol.js';
+import { Beast } from './games/beast.js';
+import { Dungeon } from './games/dungeon.js';
+import { Cavern } from './games/cavern.js';
+import { PaperMachine } from './games/turochamp.js';
+import { Draughts } from './games/draughts.js';
+import { Pool } from './games/pool.js';
+import { Sumer } from './games/sumer.js';
+import { Chase } from './games/chase.js';
+import { Conquest } from './games/empire.js';
+
+export const GAMES = { turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
