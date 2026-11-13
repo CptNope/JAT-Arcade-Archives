@@ -24,8 +24,14 @@ import { StarPatrol } from './games/starpatrol.js';
 import { Beast } from './games/beast.js';
 import { Dungeon } from './games/dungeon.js';
 import { Cavern } from './games/cavern.js';
+import { PaperMachine } from './games/turochamp.js';
+import { Draughts } from './games/draughts.js';
+import { Pool } from './games/pool.js';
+import { Sumer } from './games/sumer.js';
+import { Chase } from './games/chase.js';
+import { Conquest } from './games/empire.js';
 
-const GAMES = { nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
+const GAMES = { turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
 
 const $ = (s) => document.querySelector(s);
 const isTouch = matchMedia('(pointer: coarse)').matches;
@@ -100,6 +106,37 @@ function tileTexture() {
   return t;
 }
 
+function woodFloorTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 2; x++) {
+    const shade = 90 + Math.random() * 40;
+    g.fillStyle = `rgb(${shade},${shade * 0.62},${shade * 0.36})`; g.fillRect(x * 128 + (y % 2) * 64, y * 32, 128, 32);
+    g.strokeStyle = 'rgba(0,0,0,0.35)'; g.strokeRect(x * 128 + (y % 2) * 64, y * 32, 128, 32);
+  }
+  for (let i = 0; i < 300; i++) { g.fillStyle = 'rgba(40,20,5,0.08)'; g.fillRect(Math.random() * 256, Math.random() * 256, 30, 1); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  return t;
+}
+function chalkboardTexture() {
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 380;
+  const g = c.getContext('2d');
+  g.fillStyle = '#1f3327'; g.fillRect(0, 0, 1200, 380);
+  g.strokeStyle = '#6b4a2b'; g.lineWidth = 16; g.strokeRect(8, 8, 1184, 364);
+  g.fillStyle = 'rgba(235,240,230,0.85)'; g.strokeStyle = 'rgba(235,240,230,0.8)'; g.lineWidth = 3;
+  g.font = '34px "Comic Sans MS", "Segoe Print", cursive';
+  g.fillText('P = 1   N = 3   B = 3½   R = 5   Q = 10', 50, 70);
+  g.fillText('nim-sum:  1 ⊕ 3 ⊕ 5 ⊕ 7 = 0', 50, 130);
+  g.fillText('max  min  eval(position)', 50, 190);
+  g.fillText('grain = feed + seed + store', 50, 250);
+  g.fillText('if (caught) swap(hunter, runner)', 50, 310);
+  // a little game tree
+  const node = (x, y) => { g.beginPath(); g.arc(x, y, 10, 0, Math.PI * 2); g.stroke(); };
+  node(900, 70); for (const [x, y] of [[820, 160], [900, 160], [980, 160]]) { g.beginPath(); g.moveTo(900, 80); g.lineTo(x, y - 10); g.stroke(); node(x, y); for (const dx of [-25, 25]) { g.beginPath(); g.moveTo(x, y + 10); g.lineTo(x + dx, y + 70); g.stroke(); node(x + dx, y + 80); } }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+
 const DOOR = { w: 2.2, h: 2.8 };
 const neon = (color) => new THREE.MeshBasicMaterial({ color, toneMapped: false });
 
@@ -149,17 +186,20 @@ function wallSign(text, { glow, fg, w, x, y, z, ry, h }) {
 }
 
 const WING2 = { x0: HALL.x, x1: HALL.x + 16, z0: -HALL.z, z1: HALL.z };
+const WING3 = { x0: -HALL.x - 16, x1: -HALL.x, z0: -HALL.z, z1: HALL.z };
 // Where the visitor may stand: each room shrunk by a margin, plus the doorway between them.
 const WALKABLE = [
   { x0: -HALL.x + 0.35, x1: HALL.x - 0.35, z0: -HALL.z + 0.35, z1: HALL.z - 0.35 },
   { x0: WING2.x0 + 0.35, x1: WING2.x1 - 0.35, z0: WING2.z0 + 0.35, z1: WING2.z1 - 0.35 },
   { x0: HALL.x - 0.6, x1: HALL.x + 0.6, z0: -DOOR.w / 2 + 0.3, z1: DOOR.w / 2 - 0.3 },
+  { x0: WING3.x0 + 0.35, x1: WING3.x1 - 0.35, z0: WING3.z0 + 0.35, z1: WING3.z1 - 0.35 },
+  { x0: -HALL.x - 0.6, x1: -HALL.x + 0.6, z0: -DOOR.w / 2 + 0.3, z1: DOOR.w / 2 - 0.3 },
 ];
 const walkable = (x, z) => WALKABLE.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 
 let tapeReels = [];
 function buildHall() {
-  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0 } });
+  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0 } });
   // title + wing signs
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.15),
     new THREE.MeshBasicMaterial({ map: labelTexture('JAT ARCADE ARCHIVES', { w: 1600, h: 256, bg: 'rgba(0,0,0,0)', glow: '#ff2bd6', fg: '#ffe14d', font: '900 150px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
@@ -167,6 +207,21 @@ function buildHall() {
   wallSign('THE PIONEERS · 1947–1962', { glow: '#ffb347', fg: '#fff3d0', w: 6.4, x: 0, y: 3.05, z: HALL.z - 0.03, ry: Math.PI });
   wallSign('THE GOLDEN AGE · 1972–1989', { glow: '#00e5ff', fg: '#ffffff', w: 4.2, x: 0, y: 2.4, z: -HALL.z + 0.03, ry: 0 });
   wallSign('THE MAINFRAME ERA  →', { glow: '#7dff95', fg: '#ffffff', w: 3.2, x: HALL.x - 0.03, y: 3.2, z: 0, ry: -Math.PI / 2 });
+  wallSign('←  EXPERIMENTS & PROTOTYPES', { glow: '#ffb347', fg: '#ffffff', w: 3.6, x: -HALL.x + 0.03, y: 3.2, z: 0, ry: Math.PI / 2 });
+
+  // ---- wing 3: experiments & prototypes (a wood-panelled research lab) ----
+  const parquet = woodFloorTexture(); parquet.repeat.set(8, 7);
+  buildRoom({ ...WING3, floor: new THREE.MeshStandardMaterial({ map: parquet, roughness: 0.6 }), wall: 0x1d2a22, ceil: 0x10140f, trims: [0xffb347, 0xffe14d, 0x8a5a2b], doors: { east: 0 } });
+  wallSign('EXPERIMENTS & PROTOTYPES · 1948–1977', { glow: '#ffb347', fg: '#fff3d0', w: 6.4, x: WING3.x0 + 0.03, y: 3.3, z: 0, ry: Math.PI / 2 });
+  wallSign('MAIN HALL  →', { glow: '#ff2bd6', fg: '#ffffff', w: 2.4, x: WING3.x1 - 0.03, y: 3.2, z: 0, ry: -Math.PI / 2 });
+  const chalk = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.9), new THREE.MeshStandardMaterial({ map: chalkboardTexture(), roughness: 0.9 }));
+  chalk.position.set(WING3.x0 + 0.04, 1.75, 0); chalk.rotation.y = Math.PI / 2; scene.add(chalk);
+  for (const x of [-17.5, -22.5, -27.5]) {
+    const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 0.25, 20, 1, true), new THREE.MeshStandardMaterial({ color: 0x2b3a2f, side: THREE.DoubleSide, roughness: 0.5 }));
+    lamp.position.set(x, HALL.h - 0.6, 0); scene.add(lamp);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), neon(0xffe7b0)); bulb.position.set(x, HALL.h - 0.68, 0); scene.add(bulb);
+    const pl = new THREE.PointLight(0xffd8a0, 5, 10, 1.6); pl.position.set(x, HALL.h - 0.8, 0); scene.add(pl);
+  }
 
   // ---- wing 2: the mainframe era (a cooler computer room with a raised tile floor) ----
   const tiles = tileTexture(); tiles.repeat.set((WING2.x1 - WING2.x0) / 0.6, (WING2.z1 - WING2.z0) / 0.6);
@@ -241,7 +296,7 @@ for (const ex of EXHIBITS) {
   board.position.set(0, 1.05, 0); board.rotation.x = -0.6; lect.add(board);
 
   // spotlight from the ceiling
-  const spot = new THREE.SpotLight(0xfff1dd, ex.pos[0] > HALL.x ? 11 : 28, 9, 0.5, 0.65, 1.4); // the computer room is already bright
+  const spot = new THREE.SpotLight(0xfff1dd, Math.abs(ex.pos[0]) > HALL.x ? 13 : 28, 9, 0.5, 0.65, 1.4); // the computer room is already bright
   spot.position.set(ex.pos[0] + Math.sin(ex.rot) * 1.6, HALL.h - 0.1, ex.pos[2] + Math.cos(ex.rot) * 1.6);
   spot.target.position.set(ex.pos[0], 0.8, ex.pos[2]);
   scene.add(spot, spot.target);

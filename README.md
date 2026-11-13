@@ -2,7 +2,7 @@
 
 A walk-through 3D museum of video game history, built with three.js. Every machine in the hall is playable.
 
-Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**.
+Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**, and one on the west wall to **Experiments & Prototypes (1948–1977)**.
 
 | Year | Exhibit | Machine model | Playable game |
 |---|---|---|---|
@@ -17,6 +17,12 @@ Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The
 | 1972 | Hunt the Wumpus | teleprinter printing on paper | **Hunt the Beast** |
 | 1975 | PLATO dungeon games | orange plasma terminal | **Plasma Dungeon** |
 | 1976 | Colossal Cave Adventure | video terminal | **Cavern Quest** (original adventure) |
+| 1948 | Turochamp *(Experiments room)* | study desk, drafting board, chessboard | **Paper Machine**: chess with Turing's piece values (reconstruction) |
+| 1952 | Strachey's draughts | console with storage-tube displays | **Draughts** (reconstruction) |
+| 1954 | MIDSAC pool | lab cabinet with square CRT | **Pocket Pool** (reconstruction) |
+| 1964 | The Sumerian Game | typewriter terminal | **Sumerian Steward** (reconstruction) |
+| 1968 | The Brown Box | prototype box, knob controllers, portable TV | **Chase** (reconstruction) |
+| 1977 | Empire | video terminal | **Conquest** |
 | 1972 | Home TV games | wood-grain TV + console + paddles | **Volley** |
 | 1978 | Arcade fixed shooters | upright cabinet | **Star Siege** |
 | 1980 | Maze-chase cocktail tables | cocktail table | **Gem Runner** |
@@ -80,7 +86,7 @@ web/
 The camera's "sit down" pose comes from the screen mesh's position and facing, so it works for any screen angle, including the cocktail table's upward-facing screen.
 
 ## Roadmap
-- More early exhibits: Turochamp (1948), Strachey's checkers (1952), MIDSAC pool (1954), The Sumerian Game (1964), the Brown Box (1968), Empire (1977).
+- More exhibits: home computers and consoles of the late 1970s and 1980s, PLATO multiplayer games, early arcade racers.
 - **WordPress plugin**: shortcode/block that enqueues `web/`, exhibit JSON editable in wp-admin, high scores via REST. Every handler will check a nonce and the user's capabilities.
 - Shared engine with the Librarium Archives (board and card game museum): same exhibit format and game contract, so wings can link to each other.
 - glTF machine models as an optional upgrade over the procedural ones.
