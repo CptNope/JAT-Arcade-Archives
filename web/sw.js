@@ -1,11 +1,13 @@
 // Offline cache for the PWA build. Bump VERSION whenever files change.
-const VERSION = 'jat-arcade-v3';
+const VERSION = 'jat-arcade-v4';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icons/icon.svg',
   './src/main.js', './src/machines.js', './src/crt.js', './src/sfx.js', './src/exhibits.js',
   './src/games/base.js', './src/games/volley.js', './src/games/starsiege.js', './src/games/gemrunner.js',
   './src/games/serpent.js', './src/games/brickfall.js', './src/games/ttt.js', './src/games/targetbeam.js',
   './src/games/bertie.js', './src/games/oxo.js', './src/games/tennis.js', './src/games/spacewar.js',
+  './src/games/terminal.js', './src/games/nimrod.js', './src/games/bouncingball.js', './src/games/starpatrol.js',
+  './src/games/beast.js', './src/games/dungeon.js', './src/games/cavern.js',
 ];
 
 self.addEventListener('install', (e) => {

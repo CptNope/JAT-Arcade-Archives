@@ -53,6 +53,67 @@ export const EXHIBITS = [
     ],
     play: 'SPACEWAR: Left/Right rotate, Up thrusts, A fires, Down jumps to hyperspace (risky!). First to 3.',
   },
+  // ---- The Mainframe Era: second room, through the doorway (north row, then south row) ----
+  {
+    id: 'nimrod', year: 1951, title: 'Nimrod', machine: 'nimrod', game: 'nimrod',
+    pos: [18, 0, -5.0], rot: 0, recon: true,
+    short: 'A computer built to show off, by playing an ancient game.',
+    plaque: [
+      'Ferranti built Nimrod for the 1951 Festival of Britain. John Bennett designed it and engineer Raymond Stuart-Williams built it. It played Nim: players take turns removing lights from rows of lamps, and whoever takes the last one wins.',
+      'Bennett meant it to show off the mathematical abilities of computers, but most visitors just wanted to play. Alan Turing was among those who tried it. At the Berlin Industrial Show later that year, West Germany\'s economics minister Ludwig Erhard tried to beat it and failed.',
+    ],
+    play: 'NIMROD: Up/Down pick a row, Left/Right choose how many lamps, A takes them. Take the last lamp to win. Best of three.',
+  },
+  {
+    id: 'bouncingball', year: 1952, title: 'Bouncing Ball', machine: 'whirlwind', game: 'bouncingball',
+    pos: [22.5, 0, -5.0], rot: 0, recon: true,
+    short: 'A real-time demo becomes a game when someone adds a hole.',
+    plaque: [
+      'MIT\'s Whirlwind I was one of the first computers fast enough to draw moving pictures in real time. A demonstration program showed a ball bouncing across its display.',
+      'By the summer of 1952 someone had added a hole in the floor, and the demo became a challenge: tune the bounce so the ball drops through.',
+    ],
+    play: 'BOUNCING BALL: Up/Down change the bounce, Left/Right the speed. A drops the ball. Get it through the hole.',
+  },
+  {
+    id: 'starpatrol', year: 1971, title: 'Space on a Mainframe', machine: 'terminal2', game: 'starpatrol',
+    pos: [27, 0, -5.0], rot: 0,
+    short: 'Strategy in space, one turn at a time, on a time-shared computer.',
+    plaque: [
+      'In 1971 high-school student Mike Mayfield wrote Star Trek, a turn-based strategy game in BASIC, on a university\'s Sigma 7 mainframe. It ran on a teleprinter with no screen, so players read a grid of printed characters and typed commands to move, fire and dock.',
+      'Its BASIC listing spread from computer to computer and was rewritten many times, later on video terminals like this one. Mainframes were shared by many users, so games favoured thinking over speed.',
+    ],
+    play: 'STAR PATROL: arrows move one square, A fires phasers at every raider in the sector. Dock beside a base (B) to refuel. Leave by the map edge to warp.',
+  },
+  {
+    id: 'beast', year: 1972, title: 'Hunting in the Dark', machine: 'teletype', game: 'beast',
+    pos: [27, 0, 5.0], rot: Math.PI,
+    short: 'A cave of twenty rooms, printed one line at a time.',
+    plaque: [
+      'Gregory Yob wrote Hunt the Wumpus in BASIC in 1972. Players moved through twenty caves arranged like the corners of a dodecahedron, warned only by clues: a draft near a pit, a terrible smell near the beast.',
+      'Many people played games like this on teleprinters, which printed every turn on paper. You had to picture the map in your head.',
+    ],
+    play: 'HUNT THE BEAST: Left/Right choose MOVE or SHOOT and a tunnel, then A. Use the clues to work out where the beast is.',
+  },
+  {
+    id: 'dungeon', year: 1975, title: 'Dungeons on PLATO', machine: 'plato', game: 'dungeon',
+    pos: [22.5, 0, 5.0], rot: Math.PI,
+    short: 'Glowing orange screens and some of the first computer role-playing games.',
+    plaque: [
+      'PLATO, an educational computer network run from the University of Illinois, linked hundreds of terminals with orange plasma displays. Students used it to write some of the earliest computer role-playing games, such as pedit5 and dnd in 1975.',
+      'These games borrowed from the tabletop game Dungeons & Dragons: explore a dungeon, fight monsters, collect treasure, go deeper.',
+    ],
+    play: 'PLASMA DUNGEON: arrows move. Walk into monsters to fight. $ is gold, ! heals, > goes deeper.',
+  },
+  {
+    id: 'cavern', year: 1976, title: 'The First Adventure', machine: 'terminal', game: 'cavern',
+    pos: [18, 0, 5.0], rot: Math.PI,
+    short: 'A cave, a lamp and a parser: the adventure game is born.',
+    plaque: [
+      'Will Crowther created Colossal Cave Adventure in 1976, combining his love of caving with ideas from Dungeons & Dragons. Don Woods expanded it in 1977. Players typed two-word commands such as GET LAMP to explore and solve puzzles.',
+      'It started the adventure genre, which moved to home computers at the end of the 1970s.',
+    ],
+    play: 'CAVERN QUEST: Left/Right pick a command, A does it. Find the treasure and bring it back to the shed.',
+  },
   // ---- The Golden Age: back row ------------------------------------------------------------
   {
     id: 'volley', year: 1972, title: 'The Living-Room Game', machine: 'tv', game: 'volley',
@@ -111,4 +172,5 @@ export const RECON_NOTE = 'Modern reconstruction: the original no longer runs or
 export const WINGS = [
   { title: 'THE PIONEERS · 1947–1962', side: 'front' },
   { title: 'THE GOLDEN AGE · 1972–1989', side: 'back' },
+  { title: 'THE MAINFRAME ERA · 1951–1976', side: 'east room' },
 ];
