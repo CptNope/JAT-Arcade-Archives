@@ -109,6 +109,14 @@ function woodFloorTexture() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
   return t;
 }
+function shagTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#a8501a'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 4000; i++) { g.fillStyle = ['#c0602a', '#8a3e12', '#d4782f', '#9a4a1a'][i % 4]; g.fillRect(Math.random() * 256, Math.random() * 256, 2, 3); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  return t;
+}
 function chalkboardTexture() {
   const c = document.createElement('canvas'); c.width = 1200; c.height = 380;
   const g = c.getContext('2d');
@@ -147,13 +155,15 @@ function buildRoom({ x0, x1, z0, z1, h = HALL.h, floor, wall = 0x15102e, ceil = 
   ];
   for (const wl of walls) {
     const pieces = []; // [uCentre, width, yCentre, height, touchesFloor]
-    if (wl.door === undefined) pieces.push([0, wl.len, h / 2, h, true]);
-    else {
-      const du = wl.u(wl.door), a = du - DOOR.w / 2, b = du + DOOR.w / 2;
-      pieces.push([(-wl.len / 2 + a) / 2, a + wl.len / 2, h / 2, h, true]);
-      pieces.push([(b + wl.len / 2) / 2, wl.len / 2 - b, h / 2, h, true]);
+    const doorsHere = (wl.door === undefined ? [] : [].concat(wl.door)).map(wl.u).sort((a, b) => a - b);
+    let from = -wl.len / 2;
+    for (const du of doorsHere) {
+      const a = du - DOOR.w / 2;
+      if (a > from) pieces.push([(from + a) / 2, a - from, h / 2, h, true]);
       pieces.push([du, DOOR.w, (DOOR.h + h) / 2, h - DOOR.h, false]);
+      from = du + DOOR.w / 2;
     }
+    if (from < wl.len / 2) pieces.push([(from + wl.len / 2) / 2, wl.len / 2 - from, h / 2, h, true]);
     const holder = new THREE.Group();
     holder.position.set(wl.pos[0], 0, wl.pos[1]);
     holder.rotation.y = wl.ry; scene.add(holder);
@@ -180,6 +190,8 @@ const WING2 = { x0: HALL.x, x1: HALL.x + 16, z0: -HALL.z, z1: HALL.z };
 const WING3 = { x0: -HALL.x - 16, x1: -HALL.x, z0: -HALL.z, z1: HALL.z };
 const WING4 = { x0: -HALL.x, x1: -HALL.x + 16, z0: -HALL.z - 16, z1: -HALL.z };
 const NORTH_DOOR_X = -7;
+const WING5 = { x0: -HALL.x + 16, x1: -HALL.x + 32, z0: -HALL.z - 16, z1: -HALL.z };
+const NORTH_DOOR2_X = 7;
 // Where the visitor may stand: each room shrunk by a margin, plus the doorway between them.
 const WALKABLE = [
   { x0: -HALL.x + 0.35, x1: HALL.x - 0.35, z0: -HALL.z + 0.35, z1: HALL.z - 0.35 },
@@ -189,12 +201,14 @@ const WALKABLE = [
   { x0: -HALL.x - 0.6, x1: -HALL.x + 0.6, z0: -DOOR.w / 2 + 0.3, z1: DOOR.w / 2 - 0.3 },
   { x0: WING4.x0 + 0.35, x1: WING4.x1 - 0.35, z0: WING4.z0 + 0.35, z1: WING4.z1 - 0.35 },
   { x0: NORTH_DOOR_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
+  { x0: WING5.x0 + 0.35, x1: WING5.x1 - 0.35, z0: WING5.z0 + 0.35, z1: WING5.z1 - 0.35 },
+  { x0: NORTH_DOOR2_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR2_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
 ];
 const walkable = (x, z) => WALKABLE.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 
 let tapeReels = [];
 function buildHall() {
-  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: NORTH_DOOR_X } });
+  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: [NORTH_DOOR_X, NORTH_DOOR2_X] } });
   // title + wing signs
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.15),
     new THREE.MeshBasicMaterial({ map: labelTexture('JAT ARCADE ARCHIVES', { w: 1600, h: 256, bg: 'rgba(0,0,0,0)', glow: '#ff2bd6', fg: '#ffe14d', font: '900 150px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
@@ -212,6 +226,18 @@ function buildHall() {
   wallSign('↓  MAIN HALL', { glow: '#ff2bd6', fg: '#ffffff', w: 2.2, x: NORTH_DOOR_X, y: 3.25, z: WING4.z1 - 0.03, ry: Math.PI });
   wallSign('INSERT COIN', { glow: '#69f0ae', fg: '#ffffff', w: 2.6, x: WING4.x0 + 0.03, y: 3.1, z: -19, ry: Math.PI / 2 });
   wallSign('HIGH SCORES', { glow: '#ffeb3b', fg: '#ffffff', w: 2.6, x: WING4.x1 - 0.03, y: 3.1, z: -19, ry: -Math.PI / 2 });
+
+  // ---- wing 5: home computers & consoles (a 1980s den: wood panelling, orange carpet, a sofa) ----
+  wallSign('HOME COMPUTERS  ↑', { glow: '#ffb347', fg: '#ffffff', w: 3.2, x: NORTH_DOOR2_X, y: 3.25, z: -HALL.z + 0.03, ry: 0 });
+  const shag = shagTexture(); shag.repeat.set(6, 6);
+  buildRoom({ ...WING5, floor: new THREE.MeshStandardMaterial({ map: shag, roughness: 1 }), wall: 0x4a3018, ceil: 0x2a1e14, trims: [0xffb347, 0xff7a1a, 0x8a5a2b], doors: { south: NORTH_DOOR2_X } });
+  wallSign('HOME COMPUTERS & CONSOLES · 1980–1984', { glow: '#ffb347', fg: '#fff3d0', w: 6.6, x: (WING5.x0 + WING5.x1) / 2, y: 3.25, z: WING5.z0 + 0.03, ry: 0 });
+  wallSign('↓  MAIN HALL', { glow: '#ff2bd6', fg: '#ffffff', w: 2.2, x: NORTH_DOOR2_X, y: 3.25, z: WING5.z1 - 0.03, ry: Math.PI });
+  const sofa = new THREE.Group(); sofa.position.set(9.5, 0, -14.5); scene.add(sofa);
+  const fabric = new THREE.MeshStandardMaterial({ color: 0x8a5a2b, roughness: 0.95 });
+  for (const [w, h, d, x, y, z] of [[2.2, 0.42, 0.9, 0, 0.21, 0], [2.2, 0.5, 0.2, 0, 0.6, 0.35], [0.2, 0.3, 0.9, -1.0, 0.55, 0], [0.2, 0.3, 0.9, 1.0, 0.55, 0]]) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), fabric); m.position.set(x, y, z); sofa.add(m);
+  }
 
   // ---- wing 3: experiments & prototypes (a wood-panelled research lab) ----
   const parquet = woodFloorTexture(); parquet.repeat.set(8, 7);
@@ -311,8 +337,9 @@ const ROOM_POINTS = {
   mainframe: [[18, 3.4, 0, 0x9fe8ff, 6], [27, 3.4, 0, 0x7dff95, 6], [22.5, 3.4, 0, 0xdff6ff, 2]],
   experiments: [[-17.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-22.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-27.5, HALL.h - 0.8, 0, 0xffd8a0, 5]],
   arcade: [[-10, 3.4, -12, 0xff5252, 6], [-4, 3.4, -18, 0x4cc9f0, 6], [-6.5, 3.4, -15, 0xffeb3b, 3]],
+  home: [[5, 3.4, -12, 0xffd8a0, 6], [12, 3.4, -18, 0xffb070, 6], [9.5, 3.4, -15, 0xffe7c0, 3]],
 };
-const SPOT_POOL = Math.max(...['hall', 'mainframe', 'experiments', 'arcade'].map(r => exhibits.filter(e => e.room === r).length));
+const SPOT_POOL = Math.max(...['hall', 'mainframe', 'experiments', 'arcade', 'home'].map(r => exhibits.filter(e => e.room === r).length));
 const spots = Array.from({ length: SPOT_POOL }, () => { const sp = new THREE.SpotLight(0xfff1dd, 0, 9, 0.5, 0.65, 1.4); scene.add(sp, sp.target); return sp; });
 const points = Array.from({ length: 3 }, () => { const p = new THREE.PointLight(0xffffff, 0, 12, 1.6); scene.add(p); return p; });
 let litRoom = null;
@@ -328,7 +355,7 @@ function lightRoom(room) {
   });
   points.forEach((p, k) => { const [x, y, z, c, i] = ROOM_POINTS[room][k]; p.position.set(x, y, z); p.color.set(c); p.intensity = i; });
 }
-function roomOf(x, z = 0) { return z < -HALL.z ? 'arcade' : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
+function roomOf(x, z = 0) { return z < -HALL.z ? (x > WING4.x1 ? 'home' : 'arcade') : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
 
 // ---------- UI --------------------------------------------------------------------------------
 const focusEl = $('#focus');
@@ -636,7 +663,8 @@ function frame() {
 
   if (tween) stepTween(dt);
   else if (active < 0 && !modal) walk(dt, gp);
-  lightRoom(roomOf(camera.position.x, camera.position.z));
+  const camRoom = roomOf(camera.position.x, camera.position.z);
+  lightRoom(camRoom);
 
   // only machines the visitor can see run their attract demos and upload new frames
   camera.updateMatrixWorld();
@@ -648,7 +676,9 @@ function frame() {
     if (!playing) {
       if (ex.frameAcc < 1 / 30) return;
       sphere.copy(ex.screen.geometry.boundingSphere).applyMatrix4(ex.screen.matrixWorld);
-      const near = sphere.center.distanceToSquared(camera.position) < 26 * 26;
+      const d2 = sphere.center.distanceToSquared(camera.position);
+      // the frustum test can't see walls, so also require the same room (or close by, e.g. through a doorway)
+      const near = d2 < 26 * 26 && (ex.room === camRoom || d2 < 9 * 9);
       if (!near || !frustum.intersectsSphere(sphere)) { ex.frameAcc = Math.min(ex.frameAcc, 0.2); return; }
     }
     const step = playing ? dt : ex.frameAcc;

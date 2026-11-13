@@ -236,6 +236,67 @@ export const EXHIBITS = [
     ],
     play: 'HOP ACROSS: each arrow press is one hop. Cross the road, ride the logs and turtles, and fill all five nests.',
   },
+  // ---- Home Computers & Consoles: fifth room, second north doorway (clockwise from the door) ----
+  {
+    id: 'castlequest', year: 1980, title: 'Quest in a Cartridge', machine: 'homeConsole', game: 'castlequest',
+    pos: [2.3, 0, -11], rot: Math.PI / 2,
+    short: 'The first action-adventure on a home console, and a hidden signature.',
+    plaque: [
+      'Warren Robinett\'s Adventure (1980) for the Atari 2600 turned the text game Colossal Cave Adventure into pictures. The hero was a single square, searching castles and mazes for a chalice while dragons hunted it, even in rooms you weren\'t in.',
+      'Atari didn\'t credit its programmers, so Robinett hid a secret room containing the words "Created by Warren Robinett". It became the most famous early video game Easter egg.',
+    ],
+    play: 'CASTLE QUEST: arrows move; walk into an item to carry it, A drops it. The key unlocks the gold vault, the sword slays dragons, and the cup goes home to the castle.',
+  },
+  {
+    id: 'mazemonster', year: 1981, title: 'Something in the Maze', machine: 'pocketMicro', game: 'mazemonster',
+    pos: [2.3, 0, -16.5], rot: Math.PI / 2,
+    short: 'First-person 3D on a tiny home computer, and a dinosaur.',
+    plaque: [
+      'Malcolm Evans wrote 3D Monster Maze (1981) for the ZX81, a tiny British home computer. Drawn with chunky character blocks, it was one of the first 3D games for a home computer.',
+      'Players had to escape a maze while a Tyrannosaurus rex hunted them, with on-screen warnings as it closed in. It is often called one of the first survival horror games.',
+    ],
+    play: 'MAZE MONSTER: Up walks forward, Down steps back, Left/Right turn. Find the checked exit before the monster finds you.',
+  },
+  {
+    id: 'junglerun', year: 1982, title: 'Into the Jungle', machine: 'homeConsole', game: 'junglerun',
+    pos: [6, 0, -21], rot: 0,
+    short: 'Hundreds of screens in a few bytes, and a running, jumping hero.',
+    plaque: [
+      'David Crane\'s Pitfall! (1982) for Activision sent an explorer through a jungle of quicksand, rolling logs, swinging vines and crocodiles, hunting treasure against a 20-minute clock.',
+      'Instead of storing every screen, the game generated them from a number counter, fitting 255 jungle screens into fewer than 50 bytes of the cartridge. It sold over four million copies.',
+    ],
+    play: 'JUNGLE RUN: Left/Right run, A or Up jumps. Jump onto a vine to swing over wide swamps; A lets go. Grab treasure before time runs out.',
+  },
+  {
+    id: 'chopper', year: 1982, title: 'Rescue, not Destruction', machine: 'microBeige', game: 'chopper',
+    pos: [12, 0, -21], rot: 0,
+    short: 'A shooting game where the point is to save people.',
+    plaque: [
+      'Dan Gorlin wrote Choplifter (1982) on an Apple II his grandfather lent him, and Broderbund published it. Players flew a helicopter behind enemy lines to rescue hostages and bring them home.',
+      'It sold 9,000 copies in its first month and was one of the few games to start on a home computer and later be made into an arcade machine.',
+    ],
+    play: 'CHOPPER RESCUE: arrows fly. A fires (in the air). Shoot open the barracks, land near the hostages so they can climb aboard, then land at your base to drop them off.',
+  },
+  {
+    id: 'golddigger', year: 1983, title: 'Dig, Trap, Escape', machine: 'microSilver', game: 'golddigger',
+    pos: [16.8, 0, -16.5], rot: -Math.PI / 2,
+    short: 'A puzzle-platformer that let players build their own levels.',
+    plaque: [
+      'Doug Smith\'s Lode Runner (1983), published by Broderbund, asked players to grab every pile of gold while guards chased them, digging holes in brick floors to trap the guards.',
+      'It was one of the first games to include a level editor, so players could design and share their own stages. It sold hundreds of thousands of copies in the United States and millions in Japan.',
+    ],
+    play: 'GOLD DIGGER: arrows run and climb. A digs a hole in front of you. Trap the guards, collect all the gold, then climb the new ladder to the top.',
+  },
+  {
+    id: 'rockgem', year: 1984, title: 'Rocks That Fall', machine: 'microBlack', game: 'rockgem',
+    pos: [16.8, 0, -11], rot: -Math.PI / 2,
+    short: 'A digging game ruled by gravity.',
+    plaque: [
+      'Boulder Dash (1984), created by Peter Liepa with Chris Gray and published by First Star Software for Atari 8-bit computers, had players tunnel through caves collecting diamonds.',
+      'Boulders and diamonds fell when the earth beneath them was dug away, and rolled off each other, so every move could start a chain reaction.',
+    ],
+    play: 'ROCK & GEM: arrows dig. Collect enough gems to open the exit. Don\'t stand under falling boulders. You can push a boulder sideways into an empty space.',
+  },
   // ---- The Golden Age: back row ------------------------------------------------------------
   {
     id: 'volley', year: 1972, title: 'The Living-Room Game', machine: 'tv', game: 'volley',
@@ -296,8 +357,9 @@ export const WINGS = [
   { id: 'experiments', title: 'Experiments & Prototypes', years: '1948–1977' },
   { id: 'mainframe', title: 'The Mainframe Era', years: '1951–1976' },
   { id: 'arcade', title: 'The Arcade Boom', years: '1976–1981' },
+  { id: 'home', title: 'Home Computers & Consoles', years: '1980–1984' },
   { id: 'golden', title: 'The Golden Age', years: '1972–1989' },
 ];
 
 // Each exhibit's wing follows from where it stands (east room, west room, or the main hall's two rows).
-for (const ex of EXHIBITS) ex.wing ??= ex.pos[2] < -7 ? 'arcade' : ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';
+for (const ex of EXHIBITS) ex.wing ??= ex.pos[2] < -7 ? (ex.pos[0] > 1.5 ? 'home' : 'arcade') : ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';

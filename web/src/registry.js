@@ -27,5 +27,11 @@ import { MoonLander } from './games/moonlander.js';
 import { CityShield } from './games/cityshield.js';
 import { GardenPest } from './games/gardenpest.js';
 import { HopAcross } from './games/hopacross.js';
+import { CastleQuest } from './games/castlequest.js';
+import { MazeMonster } from './games/mazemonster.js';
+import { JungleRun } from './games/junglerun.js';
+import { Chopper } from './games/chopper.js';
+import { GoldDigger } from './games/golddigger.js';
+import { RockGem } from './games/rockgem.js';
 
-export const GAMES = { nightroad: NightRoad, rockfield: RockField, moonlander: MoonLander, cityshield: CityShield, gardenpest: GardenPest, hopacross: HopAcross, turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
+export const GAMES = { castlequest: CastleQuest, mazemonster: MazeMonster, junglerun: JungleRun, chopper: Chopper, golddigger: GoldDigger, rockgem: RockGem, nightroad: NightRoad, rockfield: RockField, moonlander: MoonLander, cityshield: CityShield, gardenpest: GardenPest, hopacross: HopAcross, turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };

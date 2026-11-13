@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>JAT Arcade Archives · game smoke test</title>
+<style>body{font:14px system-ui;background:#111;color:#eee;padding:20px} .ok{color:#7cff6b} .bad{color:#ff6b6b} td{padding:2px 12px}</style></head>
+<body>
+<h1>Game smoke test</h1>
+<p>Runs every game for 50 simulated seconds of demo play, then 50 seconds of random input, and checks that its clock advances and its score stays a real number.</p>
+<table id="out"></table>
+<script type="module">
+import { GAMES } from '../src/registry.js';
+const out = document.getElementById('out');
+const keys = ['left', 'right', 'up', 'down', 'a'];
+for (const [id, G] of Object.entries(GAMES)) {
+  const row = out.insertRow(); row.insertCell().textContent = id; const cell = row.insertCell();
+  try {
+    const g = new G(null);
+    for (let i = 0; i < 1500; i++) g.step(1 / 30, null);
+    if (!(g.t > 1)) throw new Error('clock did not advance (is step() overridden?)');
+    g.start();
+    for (let i = 0; i < 1500; i++) {
+      const k = keys[(Math.random() * 5) | 0], tap = { a: false, left: false, right: false, up: false, down: false }; tap[k] = Math.random() < 0.3;
+      const inp = { left: false, right: false, up: false, down: false, a: false, tap }; inp[k] = true;
+      g.step(1 / 30, inp);
+      if (!Number.isFinite(g.score)) throw new Error('score became ' + g.score);
+    }
+    cell.textContent = `ok (${g.mode}, score ${g.score})`; cell.className = 'ok';
+  } catch (e) { cell.textContent = 'FAILED: ' + e.message; cell.className = 'bad'; }
+  await new Promise(r => setTimeout(r, 0));
+}
+</script>
+</body>
+</html>
