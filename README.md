@@ -2,7 +2,7 @@
 
 A walk-through 3D museum of video game history, built with three.js. Every machine in the hall is playable.
 
-Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**.
+Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**.
 
 | Year | Exhibit | Machine model | Playable game |
 |---|---|---|---|
@@ -11,6 +11,12 @@ Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The
 | 1952 | OXO on EDSAC | valve racks + dot CRT + rotary dial | **OXO**: perfect-play noughts and crosses (reconstruction) |
 | 1958 | Tennis for Two | analog computer + oscilloscope | **Tennis for Two** (reconstruction) |
 | 1962 | Spacewar! | minicomputer console + round display | **Spacewar** (reconstruction) |
+| 1951 | Nimrod *(Mainframe room)* | wide lamp cabinet + button desk | **Nimrod**: Nim vs perfect play (reconstruction) |
+| 1952 | Bouncing Ball on Whirlwind | console with round scope + light gun | **Bouncing Ball** (reconstruction) |
+| 1971 | Star Trek (mainframe) | video terminal | **Star Patrol** |
+| 1972 | Hunt the Wumpus | teleprinter printing on paper | **Hunt the Beast** |
+| 1975 | PLATO dungeon games | orange plasma terminal | **Plasma Dungeon** |
+| 1976 | Colossal Cave Adventure | video terminal | **Cavern Quest** (original adventure) |
 | 1972 | Home TV games | wood-grain TV + console + paddles | **Volley** |
 | 1978 | Arcade fixed shooters | upright cabinet | **Star Siege** |
 | 1980 | Maze-chase cocktail tables | cocktail table | **Gem Runner** |
@@ -63,7 +69,7 @@ web/
     machines.js         procedural 3D machine builders
     crt.js              CRT / LCD / lamp-panel screen shader
     sfx.js              synthesized sound effects
-    games/              one file per game + base.js contract
+    games/              one file per game + base.js contract (terminal.js for text games)
 ```
 
 ### Adding an exhibit
@@ -74,7 +80,7 @@ web/
 The camera's "sit down" pose comes from the screen mesh's position and facing, so it works for any screen angle, including the cocktail table's upward-facing screen.
 
 ## Roadmap
-- **Mainframe & Terminal wing**: Nimrod (Nim, 1951), Strachey's checkers (1952), Bouncing Ball on Whirlwind (1952), MIDSAC pool (1954), Brown Box (1968), Star Trek (1971), Hunt the Wumpus (1972), Colossal Cave Adventure (1976), PLATO dungeon crawlers (1975).
+- More early exhibits: Turochamp (1948), Strachey's checkers (1952), MIDSAC pool (1954), The Sumerian Game (1964), the Brown Box (1968), Empire (1977).
 - **WordPress plugin**: shortcode/block that enqueues `web/`, exhibit JSON editable in wp-admin, high scores via REST. Every handler will check a nonce and the user's capabilities.
 - Shared engine with the Librarium Archives (board and card game museum): same exhibit format and game contract, so wings can link to each other.
 - glTF machine models as an optional upgrade over the procedural ones.

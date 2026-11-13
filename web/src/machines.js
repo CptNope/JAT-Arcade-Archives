@@ -449,4 +449,159 @@ export function buildPDP1(game) {
   return { group: g, screen, radius: 1.0, lamps };
 }
 
-export const BUILDERS = { crtdevice: buildCRTDevice, bertie: buildBertie, edsac: buildEDSAC, scope: buildTennis, pdp1: buildPDP1, tv: buildTVConsole, arcade: buildArcade, cocktail: buildCocktail, computer: buildComputer, handheld: buildHandheld };
+// ---------- the mainframe era (1951–1976) ---------------------------------------------------
+
+function desk(g, w = 1.3, d = 0.7, h = 0.74, color = 0x8a8f96) {
+  const topM = std(color, { roughness: 0.45, metalness: 0.3 });
+  add(g, box(w, 0.04, d), topM, 0, h, 0);
+  add(g, box(0.04, h, d - 0.06), topM, -w / 2 + 0.03, h / 2, 0);
+  add(g, box(0.04, h, d - 0.06), topM, w / 2 - 0.03, h / 2, 0);
+  add(g, box(w - 0.06, h * 0.55, 0.02), topM, 0, h * 0.55, -d / 2 + 0.03);
+  return h + 0.02;
+}
+
+// 1951: a wide exhibition cabinet with a lamp panel and a push-button desk.
+export function buildNimrod(game) {
+  const g = new THREE.Group();
+  const steel = std(0x6f7f8c, { roughness: 0.5, metalness: 0.4 });
+  const dark = std(0x23292e, { roughness: 0.5 });
+  add(g, rbox(1.9, 1.9, 0.5, 0.03), steel, 0, 0.95, -0.25);
+  add(g, box(0.96, 0.76, 0.02), dark, 0, 1.36, 0.005);
+  const screen = createScreen(game, 0.88, { plain: true });
+  screen.position.set(0, 1.36, 0.02);
+  g.add(screen);
+  add(g, new THREE.PlaneGeometry(0.7, 0.16), new THREE.MeshBasicMaterial({ map: labelTexture('NIMROD', { glow: '#ffb347', fg: '#fff3d0', bg: '#1c2024', font: '900 96px "Arial Black", Impact, sans-serif' }), toneMapped: false }), 0, 1.9, 0.006).userData.glow = true;
+  // vent grilles
+  for (const x of [-0.72, 0.72]) for (let i = 0; i < 9; i++) add(g, box(0.3, 0.015, 0.01), dark, x, 0.45 + i * 0.12, 0.005);
+  // push-button desk
+  const d = new THREE.Group(); d.position.set(0, 0.82, 0.32); d.rotation.x = 0.35; g.add(d);
+  add(d, box(1.0, 0.05, 0.32), steel, 0, 0, 0);
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 7; i++) add(d, cyl(0.014, 0.014, 0.014, 12), std(i === 6 ? 0xd62828 : 0xeeeeee, { roughness: 0.4 }), -0.3 + i * 0.1, 0.03, -0.1 + r * 0.065);
+  add(g, box(1.0, 0.8, 0.3), steel, 0, 0.4, 0.3);
+  return { group: g, screen, radius: 1.1 };
+}
+
+// 1952: a real-time computer console with a large round display scope and a light gun.
+export function buildWhirlwind(game) {
+  const g = new THREE.Group();
+  const grey = std(0x5d6670, { roughness: 0.5, metalness: 0.35 });
+  add(g, box(1.2, 0.8, 0.7), grey, 0, 0.4, 0);
+  const tilt = 0.45;
+  const face = new THREE.Group(); face.position.set(0, 1.05, -0.05); face.rotation.x = -tilt; g.add(face);
+  add(face, rbox(1.2, 0.6, 0.5, 0.02), grey, 0, 0, -0.2);
+  add(face, box(0.56, 0.5, 0.01), std(0x1b1f24), -0.2, 0, 0.055);
+  roundBezel(face, 0.2, -0.2, 0, 0.06, 0x202428);
+  for (let i = 0; i < 3; i++) knob(face, 0.25 + (i % 2) * 0.14, 0.15 - i * 0.12, 0.06, 0.025);
+  const screen = createScreen(game, 0.38, { curve: 0.2 });
+  screen.position.set(-0.2, 0, 0.062); face.add(screen);
+  add(face, box(0.08, 0.04, 0.005), glowMat(0x5ce1ff), 0.42, -0.2, 0.06).userData.glow = true;
+  // support under the slanted face
+  add(g, box(1.2, 0.45, 0.3), grey, 0, 0.98, -0.42);
+  // light gun on its cable
+  const gun = new THREE.Group(); gun.position.set(0.42, 0.81, 0.22); gun.rotation.set(0, -0.5, Math.PI / 2); g.add(gun);
+  add(gun, cyl(0.018, 0.022, 0.16, 12), std(0x1a1a1a), 0, 0, 0);
+  add(gun, box(0.03, 0.06, 0.03), std(0x1a1a1a), 0.025, -0.05, 0);
+  const cable = new THREE.CatmullRomCurve3([new THREE.Vector3(0.42, 0.82, 0.14), new THREE.Vector3(0.5, 0.8, 0.0), new THREE.Vector3(0.55, 0.9, -0.2)]);
+  add(g, new THREE.TubeGeometry(cable, 16, 0.006, 6), std(0x111111));
+  return { group: g, screen, radius: 0.85 };
+}
+
+// 1970s teleprinter on its pedestal, printing onto a rising sheet of paper.
+export function buildTeletype(game) {
+  const g = new THREE.Group();
+  const body = std(0xcfc7b0, { roughness: 0.5 });
+  const dark = std(0x3b3d40, { roughness: 0.5 });
+  add(g, box(0.5, 0.66, 0.42), body, 0, 0.33, -0.02);
+  add(g, rbox(0.66, 0.26, 0.56, 0.04), body, 0, 0.79, 0);
+  // keyboard
+  const kb = new THREE.Group(); kb.position.set(0, 0.92, 0.17); kb.rotation.x = 0.25; g.add(kb);
+  add(kb, box(0.5, 0.02, 0.18), dark, 0, 0, 0);
+  const keys = new THREE.InstancedMesh(cyl(0.012, 0.012, 0.02, 10), std(0x1a1a1a, { roughness: 0.4 }), 4 * 11);
+  const m4 = new THREE.Matrix4(); let n = 0;
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 11; i++) { m4.makeTranslation(-0.2 + i * 0.04 + r * 0.01, 0.02, -0.06 + r * 0.04); keys.setMatrixAt(n++, m4); }
+  kb.add(keys);
+  // platen + paper
+  const platen = add(g, cyl(0.035, 0.035, 0.5, 20), dark, 0, 0.95, -0.12); platen.rotation.z = Math.PI / 2;
+  const paperMat = std(0xefe7cf, { roughness: 0.9 });
+  const screen = createScreen(game, 0.4, { plain: true });
+  screen.material.uniforms.bright.value = 0.85;
+  const h = screen.userData.size[1];
+  screen.position.set(0, 0.98 + h / 2, -0.13); screen.rotation.x = -0.12;
+  g.add(screen);
+  // the paper continues behind and curls over
+  add(g, new THREE.PlaneGeometry(0.4, 0.2), paperMat, 0, 0.98 + h + 0.06, -0.19).rotation.x = -0.9;
+  add(g, cyl(0.06, 0.06, 0.42, 20), paperMat, 0, 0.62, -0.18).rotation.z = Math.PI / 2; // paper roll in the stand
+  return { group: g, screen, radius: 0.6 };
+}
+
+// a 1970s video terminal on a desk (case colour and glyph colour vary)
+export function buildTerminal(game, caseColor = 0xd9d3c3) {
+  const g = new THREE.Group();
+  const top = desk(g, 1.1, 0.7, 0.74, 0x6d7177);
+  const cas = std(caseColor, { roughness: 0.5 });
+  const mon = new THREE.Group(); mon.position.set(0, top, -0.1); g.add(mon);
+  add(mon, rbox(0.5, 0.42, 0.42, 0.03), cas, 0, 0.25, 0);
+  add(mon, box(0.42, 0.3, 0.3), cas, 0, 0.27, -0.25);
+  add(mon, box(0.42, 0.32, 0.01), std(0x111111, { roughness: 0.3 }), 0, 0.26, 0.211);
+  const screen = createScreen(game, 0.38, { curve: 0.12 });
+  screen.position.set(0, top + 0.26, -0.1 + 0.218);
+  g.add(screen);
+  add(mon, box(0.5, 0.04, 0.4), cas, 0, 0.02, 0);
+  // keyboard
+  add(g, rbox(0.46, 0.04, 0.17, 0.01), cas, 0, top + 0.02, 0.2);
+  const keys = new THREE.InstancedMesh(rbox(0.022, 0.012, 0.022, 0.003), std(0x2a2a2a), 4 * 14);
+  const m4 = new THREE.Matrix4(); let n = 0;
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 14; i++) { m4.makeTranslation(-0.19 + i * 0.028 + (r % 2) * 0.008, top + 0.046, 0.15 + r * 0.03); keys.setMatrixAt(n++, m4); }
+  g.add(keys);
+  return { group: g, screen, radius: 0.75 };
+}
+
+// mid-1970s plasma-panel teaching terminal: flat orange screen in a slanted housing
+export function buildPlato(game) {
+  const g = new THREE.Group();
+  const top = desk(g, 1.2, 0.75, 0.72, 0x7a6f60);
+  const beige = std(0xcfc3a5, { roughness: 0.5 });
+  const unit = new THREE.Group(); unit.position.set(0, top, -0.08); g.add(unit);
+  add(unit, rbox(0.66, 0.6, 0.46, 0.03), beige, 0, 0.32, -0.05);
+  const face = new THREE.Group(); face.position.set(0, 0.34, 0.19); face.rotation.x = -0.18; unit.add(face);
+  add(face, box(0.56, 0.5, 0.01), std(0x141414, { roughness: 0.3 }), 0, 0, 0);
+  const screen = createScreen(game, 0.48, { plain: true });
+  screen.material.uniforms.bright.value = 1.25;
+  screen.position.set(0, 0, 0.008); face.add(screen);
+  // keyboard with extra function keys
+  add(g, rbox(0.62, 0.05, 0.2, 0.01), beige, 0, top + 0.025, 0.25);
+  const keys = new THREE.InstancedMesh(rbox(0.024, 0.012, 0.024, 0.003), std(0x3a3328), 4 * 18);
+  const m4 = new THREE.Matrix4(); let n = 0;
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 18; i++) { m4.makeTranslation(-0.27 + i * 0.031, top + 0.056, 0.19 + r * 0.033); keys.setMatrixAt(n++, m4); }
+  g.add(keys);
+  return { group: g, screen, radius: 0.8 };
+}
+
+// decorative tape drives with spinning reels; returns the reels so the caller can animate them
+export function buildTapeDrives(count = 4) {
+  const g = new THREE.Group();
+  const body = std(0x9aa7b4, { roughness: 0.5, metalness: 0.25 });
+  const dark = std(0x202630);
+  const reelMat = std(0x8c8c8c, { metalness: 0.8, roughness: 0.3 });
+  const tapeMat = std(0x3a2a1a, { roughness: 0.7 });
+  const reels = [];
+  for (let i = 0; i < count; i++) {
+    const x = (i - (count - 1) / 2) * 0.9;
+    add(g, box(0.8, 1.9, 0.6), body, x, 0.95, 0);
+    add(g, box(0.7, 0.9, 0.01), dark, x, 1.35, 0.301);
+    for (const y of [1.58, 1.12]) {
+      const reel = new THREE.Group(); reel.position.set(x, y, 0.31); g.add(reel);
+      add(reel, cyl(0.17, 0.17, 0.012, 32), reelMat, 0, 0, 0).rotation.x = Math.PI / 2;
+      add(reel, cyl(0.12, 0.12, 0.016, 32), tapeMat, 0, 0, 0.002).rotation.x = Math.PI / 2;
+      for (let k = 0; k < 3; k++) add(reel, box(0.03, 0.1, 0.02), dark, Math.cos(k * 2.09) * 0.07, Math.sin(k * 2.09) * 0.07, 0.012).rotation.z = k * 2.09 + Math.PI / 2;
+      reels.push({ obj: reel, speed: (y > 1.3 ? 1 : -1.3) * (0.6 + Math.random()), phase: Math.random() * 10 });
+    }
+    for (let k = 0; k < 6; k++) add(g, box(0.02, 0.02, 0.01), glowMat([0xff3b30, 0x33ff66, 0xffd27a][k % 3]), x - 0.25 + k * 0.1, 0.75, 0.302).userData.glow = true;
+  }
+  return { group: g, reels };
+}
+
+export const BUILDERS = {
+  nimrod: buildNimrod, whirlwind: buildWhirlwind, teletype: buildTeletype, plato: buildPlato,
+  terminal: (gm) => buildTerminal(gm, 0xd9d3c3), terminal2: (gm) => buildTerminal(gm, 0x4d5a66),
+  crtdevice: buildCRTDevice, bertie: buildBertie, edsac: buildEDSAC, scope: buildTennis, pdp1: buildPDP1, tv: buildTVConsole, arcade: buildArcade, cocktail: buildCocktail, computer: buildComputer, handheld: buildHandheld };

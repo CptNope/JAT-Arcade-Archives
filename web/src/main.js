@@ -6,7 +6,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 import { EXHIBITS, NOTE, RECON_NOTE } from './exhibits.js';
-import { BUILDERS, labelTexture } from './machines.js';
+import { BUILDERS, labelTexture, buildTapeDrives } from './machines.js';
 import { Sfx } from './sfx.js';
 import { Volley } from './games/volley.js';
 import { StarSiege } from './games/starsiege.js';
@@ -18,8 +18,14 @@ import { Bertie } from './games/bertie.js';
 import { Oxo } from './games/oxo.js';
 import { Tennis } from './games/tennis.js';
 import { Spacewar } from './games/spacewar.js';
+import { Nimrod } from './games/nimrod.js';
+import { BouncingBall } from './games/bouncingball.js';
+import { StarPatrol } from './games/starpatrol.js';
+import { Beast } from './games/beast.js';
+import { Dungeon } from './games/dungeon.js';
+import { Cavern } from './games/cavern.js';
 
-const GAMES = { targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
+const GAMES = { nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
 
 const $ = (s) => document.querySelector(s);
 const isTouch = matchMedia('(pointer: coarse)').matches;
@@ -83,49 +89,101 @@ function shadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-function buildHall() {
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(HALL.x * 2, HALL.z * 2),
-    new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }));
-  floor.rotation.x = -Math.PI / 2;
-  scene.add(floor);
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x15102e, roughness: 0.9 });
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(HALL.x * 2, HALL.z * 2), new THREE.MeshStandardMaterial({ color: 0x0b0820, roughness: 1 }));
-  ceil.rotation.x = Math.PI / 2; ceil.position.y = HALL.h; scene.add(ceil);
-  const walls = [
-    [HALL.x * 2, 0, -HALL.z, 0], [HALL.x * 2, 0, HALL.z, Math.PI],
-    [HALL.z * 2, -HALL.x, 0, Math.PI / 2], [HALL.z * 2, HALL.x, 0, -Math.PI / 2],
+function tileTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#4a4f57'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 600; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '0,0,0'},0.05)`; g.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+  g.strokeStyle = '#2b2f35'; g.lineWidth = 6; g.strokeRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  return t;
+}
+
+const DOOR = { w: 2.2, h: 2.8 };
+const neon = (color) => new THREE.MeshBasicMaterial({ color, toneMapped: false });
+
+// A rectangular room with optional doorways. doors: { east: zCentre, west: zCentre, ... }
+function buildRoom({ x0, x1, z0, z1, h = HALL.h, floor, wall = 0x15102e, ceil = 0x0b0820, trims = [0xff2bd6, 0x00e5ff, 0x7a5cff], doors = {} }) {
+  const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, W = x1 - x0, D = z1 - z0;
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(W, D), floor);
+  f.rotation.x = -Math.PI / 2; f.position.set(cx, 0, cz); scene.add(f);
+  const c = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: ceil, roughness: 1 }));
+  c.rotation.x = Math.PI / 2; c.position.set(cx, h, cz); scene.add(c);
+  const wallMat = new THREE.MeshStandardMaterial({ color: wall, roughness: 0.9 });
+  const walls = [ // u() maps a world coordinate along the wall to the plane's local x
+    { len: W, pos: [cx, z0], ry: 0, door: doors.north, u: (v) => v - cx },
+    { len: W, pos: [cx, z1], ry: Math.PI, door: doors.south, u: (v) => -(v - cx) },
+    { len: D, pos: [x0, cz], ry: Math.PI / 2, door: doors.west, u: (v) => -(v - cz) },
+    { len: D, pos: [x1, cz], ry: -Math.PI / 2, door: doors.east, u: (v) => v - cz },
   ];
-  const neon = (color) => new THREE.MeshBasicMaterial({ color, toneMapped: false });
-  for (const [w, x, z, ry] of walls) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, HALL.h), wallMat);
-    m.position.set(x, HALL.h / 2, z); m.rotation.y = ry; scene.add(m);
-    // neon trim near the ceiling and a baseboard glow
-    for (const [y, c, th] of [[HALL.h - 0.35, 0xff2bd6, 0.04], [HALL.h - 0.45, 0x00e5ff, 0.025], [0.06, 0x7a5cff, 0.03]]) {
-      const s = new THREE.Mesh(new THREE.BoxGeometry(w, th, 0.02), neon(c));
-      s.position.set(x, y, z); s.rotation.y = ry; s.translateZ(0.02); scene.add(s);
+  for (const wl of walls) {
+    const pieces = []; // [uCentre, width, yCentre, height, touchesFloor]
+    if (wl.door === undefined) pieces.push([0, wl.len, h / 2, h, true]);
+    else {
+      const du = wl.u(wl.door), a = du - DOOR.w / 2, b = du + DOOR.w / 2;
+      pieces.push([(-wl.len / 2 + a) / 2, a + wl.len / 2, h / 2, h, true]);
+      pieces.push([(b + wl.len / 2) / 2, wl.len / 2 - b, h / 2, h, true]);
+      pieces.push([du, DOOR.w, (DOOR.h + h) / 2, h - DOOR.h, false]);
+    }
+    const holder = new THREE.Group();
+    holder.position.set(wl.pos[0], 0, wl.pos[1]);
+    holder.rotation.y = wl.ry; scene.add(holder);
+    for (const [u, w, y, ph, floorPiece] of pieces) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, ph), wallMat);
+      m.position.set(u, y, 0); holder.add(m);
+      for (const [ty, col, th, needFloor] of [[h - 0.35, trims[0], 0.04, false], [h - 0.45, trims[1], 0.025, false], [0.06, trims[2], 0.03, true]]) {
+        if (needFloor !== floorPiece && needFloor) continue;
+        if (!needFloor && (ty < y - ph / 2 || ty > y + ph / 2)) continue;
+        const t = new THREE.Mesh(new THREE.BoxGeometry(w, th, 0.02), neon(col));
+        t.position.set(u, ty, 0.02); holder.add(t);
+      }
     }
   }
-  // title sign on the back wall
+}
+
+function wallSign(text, { glow, fg, w, x, y, z, ry, h }) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h || w / 6.4),
+    new THREE.MeshBasicMaterial({ map: labelTexture(text, { w: 1600, h: 250, bg: 'rgba(0,0,0,0)', glow, fg, font: '900 120px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
+  m.position.set(x, y, z); m.rotation.y = ry; scene.add(m);
+}
+
+const WING2 = { x0: HALL.x, x1: HALL.x + 16, z0: -HALL.z, z1: HALL.z };
+// Where the visitor may stand: each room shrunk by a margin, plus the doorway between them.
+const WALKABLE = [
+  { x0: -HALL.x + 0.35, x1: HALL.x - 0.35, z0: -HALL.z + 0.35, z1: HALL.z - 0.35 },
+  { x0: WING2.x0 + 0.35, x1: WING2.x1 - 0.35, z0: WING2.z0 + 0.35, z1: WING2.z1 - 0.35 },
+  { x0: HALL.x - 0.6, x1: HALL.x + 0.6, z0: -DOOR.w / 2 + 0.3, z1: DOOR.w / 2 - 0.3 },
+];
+const walkable = (x, z) => WALKABLE.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+
+let tapeReels = [];
+function buildHall() {
+  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0 } });
+  // title + wing signs
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.15),
     new THREE.MeshBasicMaterial({ map: labelTexture('JAT ARCADE ARCHIVES', { w: 1600, h: 256, bg: 'rgba(0,0,0,0)', glow: '#ff2bd6', fg: '#ffe14d', font: '900 150px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
   sign.position.set(0, 3.05, -HALL.z + 0.03); scene.add(sign);
-  const wingSign = (text, glow, fg, w, z, ry, y) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 6.4),
-      new THREE.MeshBasicMaterial({ map: labelTexture(text, { w: 1600, h: 250, bg: 'rgba(0,0,0,0)', glow, fg, font: '900 120px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
-    m.position.set(0, y, z); m.rotation.y = ry; scene.add(m);
-  };
-  wingSign('THE PIONEERS · 1947–1962', '#ffb347', '#fff3d0', 6.4, HALL.z - 0.03, Math.PI, 3.05);
-  wingSign('THE GOLDEN AGE · 1972–1989', '#00e5ff', '#ffffff', 4.2, -HALL.z + 0.03, 0, 2.4);
-  // "next wing" doorway on the east wall: placeholder for future galleries / a Librarium link
-  const door = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-  door.position.set(HALL.x - 0.02, 1.4, 0); door.rotation.y = -Math.PI / 2; scene.add(door);
-  const doorSign = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.4),
-    new THREE.MeshBasicMaterial({ map: labelTexture('MORE WINGS SOON', { w: 1024, h: 160, bg: 'rgba(0,0,0,0)', glow: '#00e5ff', fg: '#ffffff', font: '900 80px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
-  doorSign.position.set(HALL.x - 0.03, 3.1, 0); doorSign.rotation.y = -Math.PI / 2; scene.add(doorSign);
+  wallSign('THE PIONEERS · 1947–1962', { glow: '#ffb347', fg: '#fff3d0', w: 6.4, x: 0, y: 3.05, z: HALL.z - 0.03, ry: Math.PI });
+  wallSign('THE GOLDEN AGE · 1972–1989', { glow: '#00e5ff', fg: '#ffffff', w: 4.2, x: 0, y: 2.4, z: -HALL.z + 0.03, ry: 0 });
+  wallSign('THE MAINFRAME ERA  →', { glow: '#7dff95', fg: '#ffffff', w: 3.2, x: HALL.x - 0.03, y: 3.2, z: 0, ry: -Math.PI / 2 });
+
+  // ---- wing 2: the mainframe era (a cooler computer room with a raised tile floor) ----
+  const tiles = tileTexture(); tiles.repeat.set((WING2.x1 - WING2.x0) / 0.6, (WING2.z1 - WING2.z0) / 0.6);
+  buildRoom({ ...WING2, floor: new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.7, metalness: 0.1 }), wall: 0x18222c, ceil: 0x0c1218, trims: [0x7dff95, 0x5ce1ff, 0x2f6b7a], doors: { west: 0 } });
+  wallSign('THE MAINFRAME ERA · 1951–1976', { glow: '#7dff95', fg: '#e8ffe8', w: 6.0, x: WING2.x1 - 0.03, y: 3.1, z: 0, ry: -Math.PI / 2 });
+  wallSign('←  MAIN HALL', { glow: '#ff2bd6', fg: '#ffffff', w: 2.4, x: WING2.x0 + 0.03, y: 3.2, z: 0, ry: Math.PI / 2 });
+  const tapes = buildTapeDrives(5);
+  tapes.group.position.set(WING2.x1 - 0.35, 0, 0); tapes.group.rotation.y = -Math.PI / 2; scene.add(tapes.group);
+  tapeReels = tapes.reels;
+  // ceiling light panels
+  for (const x of [17.5, 22.5, 27.5]) for (const z of [-3, 3]) {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.5), neon(0xdff6ff)); p.rotation.x = Math.PI / 2; p.position.set(x, HALL.h - 0.01, z); scene.add(p);
+  }
 
   scene.add(new THREE.HemisphereLight(0x8a7dff, 0x200c2a, 0.55));
-  for (const [x, c] of [[-10, 0xff2bd6], [0, 0x00e5ff], [10, 0x7a5cff]]) {
-    const p = new THREE.PointLight(c, 6, 12, 1.6); p.position.set(x, 3.4, 3); scene.add(p);
+  for (const [x, c] of [[-10, 0xff2bd6], [0, 0x00e5ff], [10, 0x7a5cff], [18, 0x9fe8ff], [27, 0x7dff95]]) {
+    const p = new THREE.PointLight(c, 6, 12, 1.6); p.position.set(x, 3.4, x > 14 ? 0 : 3); scene.add(p);
   }
 }
 buildHall();
@@ -183,7 +241,7 @@ for (const ex of EXHIBITS) {
   board.position.set(0, 1.05, 0); board.rotation.x = -0.6; lect.add(board);
 
   // spotlight from the ceiling
-  const spot = new THREE.SpotLight(0xfff1dd, 28, 9, 0.5, 0.65, 1.4);
+  const spot = new THREE.SpotLight(0xfff1dd, ex.pos[0] > HALL.x ? 11 : 28, 9, 0.5, 0.65, 1.4); // the computer room is already bright
   spot.position.set(ex.pos[0] + Math.sin(ex.rot) * 1.6, HALL.h - 0.1, ex.pos[2] + Math.cos(ex.rot) * 1.6);
   spot.target.position.set(ex.pos[0], 0.8, ex.pos[2]);
   scene.add(spot, spot.target);
@@ -206,7 +264,7 @@ let tween = null;         // camera transition
 const walkPose = { pos: new THREE.Vector3(), quat: new THREE.Quaternion() };
 
 const menu = $('#menu');
-EXHIBITS.forEach((ex, i) => {
+[...EXHIBITS.entries()].sort((a, b) => a[1].year - b[1].year).forEach(([i, ex]) => {
   const b = document.createElement('button');
   b.innerHTML = `<span class="yr"></span><span><strong></strong><small></small></span>`;
   b.querySelector('.yr').textContent = ex.year;
@@ -440,14 +498,17 @@ function walk(dt, gp) {
   if (len > 1) { f /= len; s /= len; }
   const speed = 3.0;
   const sin = Math.sin(player.yaw), cos = Math.cos(player.yaw);
-  player.pos.x += (-sin * f + cos * s) * speed * dt;
-  player.pos.z += (-cos * f - sin * s) * speed * dt;
-  const m = 0.35;
-  player.pos.x = THREE.MathUtils.clamp(player.pos.x, -HALL.x + m, HALL.x - m);
-  player.pos.z = THREE.MathUtils.clamp(player.pos.z, -HALL.z + m, HALL.z - m);
+  const nx = player.pos.x + (-sin * f + cos * s) * speed * dt;
+  const nz = player.pos.z + (-cos * f - sin * s) * speed * dt;
+  // slide along walls: try each axis on its own
+  if (walkable(nx, player.pos.z)) player.pos.x = nx;
+  if (walkable(player.pos.x, nz)) player.pos.z = nz;
   for (const c of colliders) {
     const dx = player.pos.x - c.x, dz = player.pos.z - c.z, d = Math.hypot(dx, dz), r = c.r + 0.25;
-    if (d < r && d > 1e-4) { player.pos.x = c.x + dx / d * r; player.pos.z = c.z + dz / d * r; }
+    if (d < r && d > 1e-4) {
+      const px = c.x + dx / d * r, pz = c.z + dz / d * r;
+      if (walkable(px, pz)) { player.pos.x = px; player.pos.z = pz; }
+    }
   }
   applyWalkCamera();
   // which exhibit is the visitor facing?
@@ -485,6 +546,7 @@ function frame() {
     ex.screen.userData.texture.needsUpdate = true;
     ex.screen.material.uniforms.time.value = elapsed;
   });
+  for (const r of tapeReels) r.obj.rotation.z = Math.sin(elapsed * 0.3 + r.phase) > 0.2 ? r.obj.rotation.z + dt * r.speed * 3 : r.obj.rotation.z;
   taps.clear();
   composer.render(dt);
 }
@@ -513,7 +575,7 @@ enter.addEventListener('click', () => {
 enter.focus();
 
 // debugging / embedding hook (the WordPress plugin can drive the museum through this)
-window.JATArcade = { exhibits, goTo, sitDown, standUp, camera, scene, renderer, get busy() { return !!tween; } };
+window.JATArcade = { exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, get busy() { return !!tween; } };
 
 // PWA: register the service worker when the page is served from its own origin
 if ('serviceWorker' in navigator && window.top === window.self) {
