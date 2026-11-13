@@ -507,9 +507,9 @@ export function buildWhirlwind(game) {
 }
 
 // 1970s teleprinter on its pedestal, printing onto a rising sheet of paper.
-export function buildTeletype(game) {
+export function buildTeletype(game, bodyColor = 0xcfc7b0) {
   const g = new THREE.Group();
-  const body = std(0xcfc7b0, { roughness: 0.5 });
+  const body = std(bodyColor, { roughness: 0.5 });
   const dark = std(0x3b3d40, { roughness: 0.5 });
   add(g, box(0.5, 0.66, 0.42), body, 0, 0.33, -0.02);
   add(g, rbox(0.66, 0.26, 0.56, 0.04), body, 0, 0.79, 0);
@@ -601,7 +601,114 @@ export function buildTapeDrives(count = 4) {
   return { group: g, reels };
 }
 
+// ---------- experiments & prototypes (1948–1977) --------------------------------------------
+
+// 1948: a study desk with a drafting board holding the "paper machine" sheet, and a real chessboard.
+export function buildPaperDesk(game) {
+  const g = new THREE.Group();
+  const wood = std(0xffffff, { map: woodTexture('#5a3a20'), roughness: 0.55 });
+  const top = 0.76;
+  add(g, box(1.4, 0.05, 0.75), wood, 0, top, 0);
+  for (const [x, z] of [[-0.65, -0.32], [0.65, -0.32], [-0.65, 0.32], [0.65, 0.32]]) add(g, box(0.06, top, 0.06), wood, x, top / 2, z);
+  // drafting board
+  const board = new THREE.Group(); board.position.set(-0.15, top + 0.32, -0.12); board.rotation.x = -0.32; g.add(board);
+  add(board, box(0.62, 0.62, 0.02), std(0x9a7b52, { roughness: 0.7 }), 0, 0, 0);
+  const screen = createScreen(game, 0.46, { plain: true });
+  screen.material.uniforms.bright.value = 0.9;
+  screen.position.set(0, 0.0, 0.012); board.add(screen);
+  add(board, box(0.08, 0.02, 0.02), std(0x888888, { metalness: 0.8 }), 0, 0.27, 0.02); // clip
+  add(g, box(0.04, 0.34, 0.04), wood, -0.15, top + 0.16, -0.28);
+  // physical chessboard with a few pieces
+  const cb = new THREE.Group(); cb.position.set(0.47, top + 0.03, 0.08); g.add(cb);
+  const sq = new THREE.InstancedMesh(box(0.035, 0.008, 0.035), std(0xffffff, { roughness: 0.5 }), 64);
+  const m4 = new THREE.Matrix4(); const col = new THREE.Color();
+  for (let i = 0; i < 64; i++) { const x = i % 8, y = (i / 8) | 0; m4.makeTranslation((x - 3.5) * 0.035, 0, (y - 3.5) * 0.035); sq.setMatrixAt(i, m4); sq.setColorAt(i, col.set((x + y) % 2 ? 0x5a3a20 : 0xe8d8b8)); }
+  cb.add(sq);
+  for (const [x, y, dark, h] of [[4, 0, 1, 0.05], [3, 0, 1, 0.045], [4, 7, 0, 0.05], [5, 6, 0, 0.03], [2, 2, 1, 0.035], [6, 5, 0, 0.035], [4, 3, 1, 0.025], [4, 4, 0, 0.025]])
+    add(cb, cyl(0.009, 0.013, h, 12), std(dark ? 0x222222 : 0xf2eee6, { roughness: 0.4 }), (x - 3.5) * 0.035, h / 2 + 0.004, (y - 3.5) * 0.035);
+  // pencil, papers, cup
+  const pencil = add(g, cyl(0.004, 0.004, 0.16, 6), std(0xe0b030), 0.18, top + 0.03, 0.26); pencil.rotation.set(0, 0.6, Math.PI / 2);
+  for (let i = 0; i < 5; i++) { const pp = add(g, box(0.21, 0.002, 0.29), std(0xf3ecd8, { roughness: 0.9 }), -0.5 + i * 0.006, top + 0.028 + i * 0.002, 0.15); pp.rotation.y = i * 0.07 - 0.1; }
+  add(g, cyl(0.035, 0.03, 0.08, 16), std(0xf5f5f5, { roughness: 0.3 }), 0.58, top + 0.065, -0.22);
+  return { group: g, screen, radius: 0.85 };
+}
+
+// 1952: a console with a storage-tube display above a sloping panel of switches.
+export function buildFerranti(game) {
+  const g = new THREE.Group();
+  const grey = std(0x8c949b, { roughness: 0.5, metalness: 0.35 });
+  const dark = std(0x24292e, { roughness: 0.5 });
+  add(g, box(1.6, 0.75, 0.6), grey, 0, 0.375, 0);
+  const slope = new THREE.Group(); slope.position.set(0, 0.83, 0.05); slope.rotation.x = -0.6; g.add(slope);
+  add(slope, box(1.6, 0.36, 0.08), grey, 0, 0, -0.04);
+  const sw = new THREE.InstancedMesh(box(0.012, 0.03, 0.012), std(0xe8e8e8, { metalness: 0.6 }), 3 * 24);
+  const m4 = new THREE.Matrix4(); let n = 0;
+  for (let r = 0; r < 3; r++) for (let i = 0; i < 24; i++) { m4.makeTranslation(-0.66 + i * 0.057, -0.1 + r * 0.1, 0.01); sw.setMatrixAt(n++, m4); }
+  slope.add(sw);
+  // display hood with two tubes, one live
+  add(g, box(1.0, 0.5, 0.45), grey, 0, 1.25, -0.12);
+  add(g, box(0.4, 0.4, 0.01), dark, -0.23, 1.25, 0.106);
+  add(g, box(0.4, 0.4, 0.01), dark, 0.23, 1.25, 0.106);
+  const screen = createScreen(game, 0.34, { curve: 0.1 });
+  screen.position.set(-0.23, 1.25, 0.113); g.add(screen);
+  // the second tube shows a static memory pattern
+  const pat = document.createElement('canvas'); pat.width = pat.height = 64; const pg = pat.getContext('2d');
+  pg.fillStyle = '#020803'; pg.fillRect(0, 0, 64, 64); pg.fillStyle = '#7dff95';
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 20; x++) if (Math.random() < 0.45) pg.fillRect(4 + x * 3, 2 + y * 2, 2, 1);
+  const pt = new THREE.CanvasTexture(pat); pt.colorSpace = THREE.SRGBColorSpace;
+  add(g, new THREE.PlaneGeometry(0.34, 0.34), new THREE.MeshBasicMaterial({ map: pt, toneMapped: false }), 0.23, 1.25, 0.113);
+  return { group: g, screen, radius: 0.95 };
+}
+
+// 1954: a laboratory cabinet with a square display tube at standing height.
+export function buildMidsac(game) {
+  const g = new THREE.Group();
+  const panel = std(0x6b7660, { roughness: 0.55, metalness: 0.3 });
+  const dark = std(0x1d211b);
+  add(g, box(1.0, 1.85, 0.55), panel, 0, 0.925, -0.1);
+  add(g, box(0.6, 0.42, 0.01), dark, 0, 1.3, 0.18);
+  const screen = createScreen(game, 0.52, { curve: 0.08 });
+  screen.position.set(0, 1.3, 0.187); g.add(screen);
+  for (let i = 0; i < 4; i++) knob(g, -0.3 + i * 0.2, 0.95, 0.18, 0.03);
+  for (let i = 0; i < 8; i++) add(g, cyl(0.008, 0.008, 0.006), glowMat(i % 3 ? 0xffb347 : 0x7dff95), -0.35 + i * 0.1, 0.82, 0.18).rotation.x = Math.PI / 2;
+  // cue control box on a shelf
+  add(g, box(0.7, 0.04, 0.25), panel, 0, 0.75, 0.3);
+  add(g, rbox(0.22, 0.06, 0.14, 0.01), std(0x2a2a2a), 0, 0.8, 0.32);
+  knob(g, -0.05, 0.84, 0.33, 0.018); knob(g, 0.05, 0.84, 0.33, 0.018);
+  return { group: g, screen, radius: 0.75 };
+}
+
+// 1967–68: a wood-grain prototype box with switches, two knob controllers, and a portable TV.
+export function buildPrototypeBox(game) {
+  const g = new THREE.Group();
+  const top = desk(g, 1.3, 0.7, 0.7, 0x7d6a55);
+  // portable TV
+  const tv = new THREE.Group(); tv.position.set(0, top, -0.15); g.add(tv);
+  add(tv, rbox(0.56, 0.44, 0.4, 0.05), std(0xb8b2a2, { roughness: 0.45 }), 0, 0.24, 0);
+  add(tv, box(0.42, 0.33, 0.01), std(0x111111), -0.04, 0.25, 0.2);
+  const screen = createScreen(game, 0.38, { curve: 0.2 });
+  screen.position.set(-0.04, top + 0.25, -0.15 + 0.208); g.add(screen);
+  add(tv, cyl(0.015, 0.015, 0.03), std(0x222222), 0.22, 0.32, 0.2).rotation.x = Math.PI / 2;
+  add(tv, cyl(0.004, 0.004, 0.4), std(0xcccccc, { metalness: 0.9 }), 0.15, 0.6, -0.05).rotation.z = -0.5;
+  add(tv, cyl(0.004, 0.004, 0.4), std(0xcccccc, { metalness: 0.9 }), -0.15, 0.6, -0.05).rotation.z = 0.5;
+  // the prototype box
+  const wood = std(0xffffff, { map: woodTexture('#6a4024'), roughness: 0.6 });
+  add(g, box(0.44, 0.09, 0.26), wood, 0, top + 0.045, 0.2);
+  for (let i = 0; i < 8; i++) add(g, box(0.012, 0.028, 0.012), std(0xdddddd, { metalness: 0.7 }), -0.17 + i * 0.048, top + 0.075, 0.335).rotation.x = 0.4;
+  // two controllers, each with horizontal and vertical knobs
+  for (const s of [-1, 1]) {
+    const c = new THREE.Group(); c.position.set(s * 0.48, top, 0.22); g.add(c);
+    add(c, box(0.14, 0.07, 0.11), wood, 0, 0.035, 0);
+    for (const [x, col] of [[-0.035, 0x111111], [0.035, 0x111111]]) add(c, cyl(0.016, 0.018, 0.025), std(col), x, 0.08, 0);
+    const cord = new THREE.CatmullRomCurve3([new THREE.Vector3(s * 0.42, top + 0.02, 0.18), new THREE.Vector3(s * 0.3, top + 0.005, 0.12), new THREE.Vector3(s * 0.2, top + 0.03, 0.15)]);
+    add(g, new THREE.TubeGeometry(cord, 12, 0.005, 6), std(0x111111));
+  }
+  return { group: g, screen, radius: 0.8 };
+}
+
 export const BUILDERS = {
+  paperdesk: buildPaperDesk, ferranti: buildFerranti, midsac: buildMidsac, protobox: buildPrototypeBox,
+  ibmterm: (gm) => buildTeletype(gm, 0x7f93a8), terminal3: (gm) => buildTerminal(gm, 0x3b4250),
   nimrod: buildNimrod, whirlwind: buildWhirlwind, teletype: buildTeletype, plato: buildPlato,
   terminal: (gm) => buildTerminal(gm, 0xd9d3c3), terminal2: (gm) => buildTerminal(gm, 0x4d5a66),
   crtdevice: buildCRTDevice, bertie: buildBertie, edsac: buildEDSAC, scope: buildTennis, pdp1: buildPDP1, tv: buildTVConsole, arcade: buildArcade, cocktail: buildCocktail, computer: buildComputer, handheld: buildHandheld };

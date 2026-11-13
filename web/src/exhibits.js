@@ -114,6 +114,67 @@ export const EXHIBITS = [
     ],
     play: 'CAVERN QUEST: Left/Right pick a command, A does it. Find the treasure and bring it back to the shed.',
   },
+  // ---- Experiments & Prototypes: third room, west doorway (south row, then north row) ----
+  {
+    id: 'turochamp', year: 1948, title: 'The Paper Machine', machine: 'paperdesk', game: 'turochamp',
+    pos: [-18, 0, 5.0], rot: Math.PI, recon: true,
+    short: 'A chess program written before there was a computer to run it.',
+    plaque: [
+      'In 1948 Alan Turing and David Champernowne wrote Turochamp, a set of rules for playing chess. No computer could run it, so in 1952 Turing played a recorded game against his colleague Alick Glennie by working through the rules himself with pencil and paper. Each move took up to half an hour. The program lost.',
+      'This version uses Turing\'s piece values (pawn 1, knight 3, bishop 3½, rook 5, queen 10) and his idea of counting how freely each piece can move. It skips castling and en passant.',
+    ],
+    play: 'PAPER MACHINE: arrows move the blue cursor. A picks up a piece, then A again on a dotted square to move it. You play the white pieces.',
+  },
+  {
+    id: 'draughts', year: 1952, title: 'Strachey\'s Draughts', machine: 'ferranti', game: 'draughts',
+    pos: [-22.5, 0, 5.0], rot: Math.PI, recon: true,
+    short: 'A teacher turns a computer\'s memory display into a game board.',
+    plaque: [
+      'Christopher Strachey, a schoolteacher, wrote a draughts (checkers) program for the Ferranti Mark 1 at the University of Manchester. By July 1952 it could play a complete game at a reasonable speed.',
+      'Strachey reused the computer\'s monitor tubes, which normally showed the contents of memory, to draw the board and pieces. After hearing him describe it, Arthur Samuel wrote his own checkers program for the IBM 701.',
+    ],
+    play: 'DRAUGHTS: arrows move the cursor, A picks a piece, A again on a marked square to move. You are the bright rings. Captures are compulsory.',
+  },
+  {
+    id: 'pool', year: 1954, title: 'Pool on MIDSAC', machine: 'midsac', game: 'pool',
+    pos: [-27, 0, 5.0], rot: Math.PI, recon: true,
+    short: 'Balls rolling across a screen in real time.',
+    plaque: [
+      'In 1954 the University of Michigan built a pool game for MIDSAC, one of the computers that followed EDSAC. Its graphics updated continuously on the screen, which was rare for the time.',
+      'Very little about the original survives, so this table is a modern reconstruction.',
+    ],
+    play: 'POCKET POOL: Left/Right aim (hold A to aim finely), Up/Down set power, tap A to shoot. Pot every ball before you run out of shots.',
+  },
+  {
+    id: 'sumer', year: 1964, title: 'The Sumerian Game', machine: 'ibmterm', game: 'sumer',
+    pos: [-27, 0, -5.0], rot: 0, recon: true,
+    short: 'A schoolteacher writes one of the first story-driven games.',
+    plaque: [
+      'Mabel Addis, a fourth-grade teacher, designed and wrote The Sumerian Game, and IBM\'s William McKay programmed it for an IBM 7090 mainframe. Players ruled the city of Lagash around 3500 BC, deciding how to share grain between food, planting and storage. Sixth-graders played it on a teleprinter.',
+      'Addis is credited as the first female video game designer and the first video game writer. A later version, King of Sumeria, led to the famous BASIC game Hamurabi.',
+    ],
+    play: 'SUMERIAN STEWARD: Left/Right choose an amount, A confirms. Feed your people and plant your fields for ten seasons.',
+  },
+  {
+    id: 'chase', year: 1968, title: 'The Brown Box', machine: 'protobox', game: 'chase',
+    pos: [-22.5, 0, -5.0], rot: 0, recon: true,
+    short: 'The prototype that became the first home console.',
+    plaque: [
+      'Starting in 1967, Ralph Baer and his colleagues at Sanders Associates built a series of prototypes for playing games on an ordinary television. The seventh, finished in 1968, was nicknamed the Brown Box after the wood-grain vinyl stuck to its case. Switches on the front selected among its games.',
+      'One early idea was a chase game: each player moved a spot with separate horizontal and vertical knobs, like tag. Magnavox licensed the Brown Box and sold it as the Odyssey in 1972.',
+    ],
+    play: 'CHASE: arrows move your solid spot. Odd rounds you hunt the hollow spot; even rounds you run from it. Six rounds.',
+  },
+  {
+    id: 'empire', year: 1977, title: 'Empire', machine: 'terminal3', game: 'empire',
+    pos: [-18, 0, -5.0], rot: 0,
+    short: 'A war game that spread from computer to computer.',
+    plaque: [
+      'Walter Bright wrote Empire in 1977 in FORTRAN for the PDP-10 at Caltech, based on a board war game he had designed as a child. Cities build armies, armies explore a hidden map, and capturing a city succeeds only half the time.',
+      'The source code was copied off Caltech\'s computer and passed from system to system. The game was so absorbing that some students reportedly failed classes playing it.',
+    ],
+    play: 'CONQUEST: arrows move the blinking army one square, A makes it wait. Capture every enemy city (X).',
+  },
   // ---- The Golden Age: back row ------------------------------------------------------------
   {
     id: 'volley', year: 1972, title: 'The Living-Room Game', machine: 'tv', game: 'volley',
@@ -173,4 +234,5 @@ export const WINGS = [
   { title: 'THE PIONEERS · 1947–1962', side: 'front' },
   { title: 'THE GOLDEN AGE · 1972–1989', side: 'back' },
   { title: 'THE MAINFRAME ERA · 1951–1976', side: 'east room' },
+  { title: 'EXPERIMENTS & PROTOTYPES · 1948–1977', side: 'west room' },
 ];
