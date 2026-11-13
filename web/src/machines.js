@@ -212,10 +212,10 @@ export function buildCocktail(game) {
 }
 
 // Early-1980s home computer on a desk: keyboard wedge, beige monitor, floppy drive, joystick.
-export function buildComputer(game) {
+export function buildComputer(game, { body = 0xd9cfb4, kbColor = 0x5a4a3a, keyColor = 0x3a2e24 } = {}) {
   const g = new THREE.Group();
-  const beige = std(0xd9cfb4, { roughness: 0.55 });
-  const brown = std(0x5a4a3a, { roughness: 0.6 });
+  const beige = std(body, { roughness: 0.55 });
+  const brown = std(kbColor, { roughness: 0.6 });
   const wood = std(0xffffff, { map: woodTexture('#8a5a32'), roughness: 0.5 });
   const metal = std(0x333333, { metalness: 0.7, roughness: 0.4 });
 
@@ -231,7 +231,7 @@ export function buildComputer(game) {
   const kb = new THREE.Mesh(kgeo, brown); kb.position.set(0, deskTop, 0.08); g.add(kb);
   // keys as one instanced mesh
   const keyGeo = rbox(0.02, 0.012, 0.02, 0.003);
-  const keys = new THREE.InstancedMesh(keyGeo, std(0x3a2e24, { roughness: 0.5 }), 4 * 16);
+  const keys = new THREE.InstancedMesh(keyGeo, std(keyColor, { roughness: 0.5 }), 4 * 16);
   const m4 = new THREE.Matrix4(); const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.atan2(0.035, 0.22));
   let n = 0;
   for (let r = 0; r < 4; r++) for (let i = 0; i < 16; i++) {
@@ -718,7 +718,65 @@ export function buildPrototypeBox(game) {
   return { group: g, screen, radius: 0.8 };
 }
 
+// ---------- home computers & consoles (1980–1984) --------------------------------------------
+
+function portableTV(parent, game, x, y, z, { color = 0x2b2b2b, width = 0.36, bright = 1.6 } = {}) {
+  const tv = new THREE.Group(); tv.position.set(x, y, z); parent.add(tv);
+  add(tv, rbox(width + 0.16, width * 0.82 + 0.1, 0.36, 0.04), std(color, { roughness: 0.45 }), 0, (width * 0.82 + 0.1) / 2, 0);
+  add(tv, box(width + 0.04, width * 0.78, 0.01), std(0x0a0a0a), -0.02, (width * 0.82 + 0.1) / 2, 0.181);
+  const screen = createScreen(game, width, { curve: 0.18, bright });
+  screen.position.set(-0.02, (width * 0.82 + 0.1) / 2, 0.188); tv.add(screen);
+  knob(tv, width / 2 + 0.03, (width * 0.82 + 0.1) / 2 + 0.06, 0.18, 0.016);
+  knob(tv, width / 2 + 0.03, (width * 0.82 + 0.1) / 2 - 0.04, 0.18, 0.016);
+  return screen;
+}
+
+// a living-room setup: a TV on a low stand, a ribbed console with a wood-grain front, and a joystick
+export function buildHomeConsole(game) {
+  const g = new THREE.Group();
+  const wood = std(0xffffff, { map: woodTexture('#6a4024'), roughness: 0.55 });
+  add(g, box(1.1, 0.5, 0.5), wood, 0, 0.25, -0.05);
+  const screen = portableTV(g, game, 0, 0.5, -0.05, { color: 0x3a3a3a, width: 0.42, bright: game.id === 'castlequest' ? 0.95 : 1.5 });
+  // console on the shelf in front of the TV
+  const con = new THREE.Group(); con.position.set(0.05, 0.5, 0.29); g.add(con);
+  add(con, box(0.34, 0.05, 0.2), std(0x111111, { roughness: 0.4 }), 0, 0.025, 0);
+  add(con, box(0.34, 0.03, 0.04), wood, 0, 0.015, 0.1);
+  for (let i = 0; i < 6; i++) add(con, box(0.32, 0.004, 0.006), std(0x2a2a2a), 0, 0.052, -0.07 + i * 0.024);
+  add(con, box(0.1, 0.03, 0.06), std(0x1a1a1a), 0, 0.065, -0.05); // cartridge
+  // joystick on a cord
+  const js = new THREE.Group(); js.position.set(-0.38, 0.5, 0.36); js.rotation.y = 0.3; g.add(js);
+  add(js, box(0.09, 0.03, 0.09), std(0x111111), 0, 0.015, 0);
+  add(js, cyl(0.008, 0.01, 0.09), std(0x111111), 0, 0.07, 0);
+  add(js, cyl(0.012, 0.012, 0.01), std(0xd62828), -0.03, 0.035, -0.03);
+  const cord = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.36, 0.52, 0.32), new THREE.Vector3(-0.2, 0.505, 0.36), new THREE.Vector3(-0.08, 0.51, 0.25)]);
+  add(g, new THREE.TubeGeometry(cord, 12, 0.004, 5), std(0x111111));
+  return { group: g, screen, radius: 0.7 };
+}
+
+// a tiny wedge-shaped computer with a flat keyboard, a cassette recorder and a portable TV
+export function buildPocketMicro(game) {
+  const g = new THREE.Group();
+  const top = desk(g, 1.1, 0.65, 0.72, 0x7a6a58);
+  const screen = portableTV(g, game, 0, top, -0.12, { color: 0xe8e2d4, width: 0.4, bright: 0.9 });
+  const ws = new THREE.Shape(); ws.moveTo(0, 0); ws.lineTo(0.17, 0); ws.lineTo(0.17, 0.02); ws.lineTo(0, 0.04); ws.closePath();
+  const wg = new THREE.ExtrudeGeometry(ws, { depth: 0.17, bevelEnabled: false }); wg.rotateY(-Math.PI / 2); wg.translate(0.085, 0, -0.04);
+  const wedge = new THREE.Mesh(wg, std(0x141414, { roughness: 0.4 })); wedge.position.set(0, top, 0.2); g.add(wedge);
+  const keys = new THREE.InstancedMesh(box(0.012, 0.001, 0.012), std(0x8a8a8a), 40);
+  const m4 = new THREE.Matrix4(); let n = 0;
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 10; i++) { m4.makeTranslation(-0.07 + i * 0.016, top + 0.03 - r * 0.004, 0.17 + r * 0.025 - 0.02); keys.setMatrixAt(n++, m4); }
+  g.add(keys);
+  // cassette recorder
+  add(g, rbox(0.2, 0.05, 0.14, 0.01), std(0x2b2b2b), 0.36, top + 0.025, 0.12);
+  add(g, box(0.1, 0.004, 0.06), std(0x6a6a6a), 0.36, top + 0.052, 0.11);
+  for (let i = 0; i < 4; i++) add(g, box(0.02, 0.01, 0.015), std(0x888888), 0.3 + i * 0.03, top + 0.055, 0.17);
+  return { group: g, screen, radius: 0.75 };
+}
+
 export const BUILDERS = {
+  homeConsole: buildHomeConsole, pocketMicro: buildPocketMicro,
+  microBeige: (gm) => buildComputer(gm, { body: 0xd8cdb0, kbColor: 0xc9bd9e, keyColor: 0x3b3329 }),
+  microSilver: (gm) => buildComputer(gm, { body: 0xb9b5ac, kbColor: 0x4a3a2a, keyColor: 0x2a2018 }),
+  microBlack: (gm) => buildComputer(gm, { body: 0x2e2e33, kbColor: 0x1e1e22, keyColor: 0x9a9a9a }),
   arcadeDrive: (gm) => buildArcade(gm, 'NIGHT ROAD', { control: 'wheel', glow: '#ffffff', fg: '#9fb7ff', art: { base: '#08080c', stripes: ['#ffffff', '#9fb7ff', '#3d5afe'], planet: '#1c1c28', ring: '#ffffff' } }),
   arcadeRocks: (gm) => buildArcade(gm, 'ROCK FIELD', { vector: true, glow: '#7ad8ff', fg: '#ffffff', art: { base: '#0a0f1f', stripes: ['#7ad8ff', '#3a6dd8', '#1c2f7a'], planet: '#8d8d8d', ring: '#d0d0d0' } }),
   arcadeMoon: (gm) => buildArcade(gm, 'MOON LANDER', { vector: true, glow: '#ffe14d', fg: '#ffffff', art: { base: '#111018', stripes: ['#ffe14d', '#ff9e3d', '#ff5c38'], planet: '#d9d9d9', ring: '#ffe14d' } }),
