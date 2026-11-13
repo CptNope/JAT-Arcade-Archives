@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>JAT Arcade Archives</title>
+<meta name="description" content="Walk through a 3D museum of computer and video game history and play every machine.">
+<meta name="theme-color" content="#0b0820">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#f4f1ff; --muted:#a9a3c9; --panel:rgba(14,10,36,.86); --line:rgba(255,255,255,.12); --pink:#ff2bd6; --cyan:#00e5ff; --yellow:#ffe14d; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:#05030f; color:var(--ink); font-family:'Space Grotesk', system-ui, sans-serif; overflow:hidden; }
+  #app { position:fixed; inset:0; }
+  #app canvas { display:block; width:100%; height:100%; touch-action:none; cursor:grab; }
+  #app canvas:active { cursor:grabbing; }
+  .pixel { font-family:'Press Start 2P', monospace; letter-spacing:.02em; }
+  button { font:inherit; color:inherit; cursor:pointer; }
+  .btn { background:linear-gradient(180deg,#2a1f63,#1a1340); border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:.65em 1em; font-weight:600; }
+  .btn:hover, .btn:focus-visible { border-color:var(--cyan); outline:none; box-shadow:0 0 0 2px rgba(0,229,255,.25); }
+  .btn.primary { background:linear-gradient(180deg,#ff3fdc,#b0189a); border-color:transparent; color:#fff; }
+
+  /* intro */
+  #intro { position:fixed; inset:0; display:grid; place-items:center; background:radial-gradient(ellipse at 50% 30%, rgba(60,30,140,.55), rgba(5,3,15,.96) 70%); z-index:30; padding:24px; transition:opacity .5s; }
+  #intro.hide { opacity:0; pointer-events:none; }
+  #intro .card { max-width:560px; text-align:center; }
+  #intro h1 { font-size:clamp(18px,4.2vw,30px); line-height:1.5; margin:0 0 .6em; color:var(--yellow); text-shadow:0 0 18px rgba(255,43,214,.8), 3px 3px 0 #7a1270; }
+  #intro p { color:var(--muted); line-height:1.6; margin:.4em 0; }
+  #intro .keys { display:grid; grid-template-columns:auto 1fr; gap:.35em 1em; text-align:left; margin:1.2em auto; width:max-content; max-width:100%; font-size:14px; }
+  #intro kbd { font-family:'Press Start 2P', monospace; font-size:10px; background:#1c1545; border:1px solid var(--line); border-bottom-width:3px; border-radius:6px; padding:.35em .55em; color:var(--ink); white-space:nowrap; }
+  #loading { margin-top:1em; font-size:12px; color:var(--muted); }
+
+  /* top bar */
+  #top { position:fixed; top:12px; left:12px; right:12px; display:flex; gap:8px; align-items:flex-start; z-index:10; pointer-events:none; }
+  #top > * { pointer-events:auto; }
+  #brand { font-size:11px; color:var(--yellow); padding:.8em 1em; background:var(--panel); border:1px solid var(--line); border-radius:10px; backdrop-filter:blur(6px); }
+  #top .spacer { flex:1; }
+  #menu { position:fixed; top:64px; right:12px; width:min(340px, calc(100% - 24px)); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:8px; z-index:12; backdrop-filter:blur(8px); display:none; }
+  #menu.open { display:block; }
+  #menu button { display:flex; width:100%; text-align:left; gap:12px; align-items:center; background:none; border:0; border-radius:10px; padding:10px; }
+  #menu button:hover, #menu button:focus-visible { background:rgba(255,255,255,.07); outline:none; }
+  #menu .yr { font-family:'Press Start 2P', monospace; font-size:10px; color:var(--cyan); min-width:44px; }
+  #menu small { display:block; color:var(--muted); }
+
+  /* focus card */
+  #focus { position:fixed; left:50%; bottom:22px; transform:translate(-50%, 20px); opacity:0; transition:.25s; width:min(520px, calc(100% - 24px)); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; z-index:10; backdrop-filter:blur(8px); pointer-events:none; }
+  #focus.show { opacity:1; transform:translate(-50%,0); pointer-events:auto; }
+  #focus .yr { font-size:11px; color:var(--cyan); }
+  #focus h2 { margin:.35em 0 .2em; font-size:20px; }
+  #focus p { margin:0 0 .8em; color:var(--muted); }
+  #focus .row { display:flex; gap:8px; flex-wrap:wrap; }
+  #focus .hint { margin-left:auto; align-self:center; font-size:12px; color:var(--muted); }
+
+  /* plaque */
+  #plaque { position:fixed; inset:0; display:none; place-items:center; background:rgba(3,2,10,.6); z-index:20; padding:20px; }
+  #plaque.open { display:grid; }
+  #plaque article { max-width:560px; background:linear-gradient(180deg,#1b1442,#0e0a24); border:1px solid rgba(255,225,77,.35); border-radius:16px; padding:22px 24px; box-shadow:0 20px 60px rgba(0,0,0,.6); max-height:90vh; overflow:auto; }
+  #plaque .yr { color:var(--yellow); font-size:13px; }
+  #plaque h2 { margin:.4em 0 .6em; }
+  #plaque p { line-height:1.65; color:#d9d4f5; }
+  #plaque .how { background:rgba(0,229,255,.08); border:1px solid rgba(0,229,255,.25); padding:10px 12px; border-radius:10px; color:var(--ink); }
+  #plaque .note { font-size:12px; color:var(--muted); }
+
+  /* play mode */
+  #playbar { position:fixed; top:12px; left:50%; transform:translateX(-50%); display:none; gap:10px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px 8px 14px; z-index:11; font-size:13px; max-width:calc(100% - 24px); }
+  body.playing #playbar { display:flex; }
+  body.playing #top, body.playing #focus { display:none; }
+  #playbar span { color:var(--muted); }
+
+  /* touch controls */
+  .touch { display:none; }
+  body.is-touch .touch.walk { display:block; }
+  body.is-touch.playing .touch.walk { display:none; }
+  body.is-touch.playing .touch.play { display:flex; }
+  body.is-touch.playing #playbar span { display:none; }
+  #stick { position:fixed; left:24px; bottom:24px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.18); z-index:9; touch-action:none; }
+  #stick i { position:absolute; left:50%; top:50%; width:52px; height:52px; margin:-26px; border-radius:50%; background:rgba(0,229,255,.35); border:2px solid var(--cyan); }
+  body.is-touch #focus { left:auto; right:12px; bottom:12px; transform:translateY(20px); width:min(380px, calc(100% - 180px)); padding:10px 12px; }
+  body.is-touch #focus.show { transform:none; }
+  body.is-touch #focus h2 { font-size:16px; } body.is-touch #focus p { font-size:13px; margin-bottom:.5em; }
+  body.is-touch #focus .hint { display:none; }
+  body.is-touch #playbar { left:auto; right:12px; transform:none; padding:6px; }
+  #pad { position:fixed; left:0; right:0; bottom:18px; justify-content:space-between; align-items:flex-end; padding:0 18px; z-index:12; pointer-events:none; }
+  #pad > * { pointer-events:auto; }
+  .dpad { display:grid; grid-template-columns:repeat(3, 52px); grid-template-rows:repeat(3, 52px); gap:4px; }
+  .dpad button, .abtn { background:rgba(30,22,70,.8); border:2px solid rgba(255,255,255,.22); border-radius:12px; font-size:20px; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .dpad button.on, .abtn.on { background:rgba(0,229,255,.35); border-color:var(--cyan); }
+  .abtn { width:84px; height:84px; border-radius:50%; font-family:'Press Start 2P', monospace; font-size:16px; background:rgba(176,24,154,.75); }
+  @media (prefers-reduced-motion: reduce) { #focus, #intro { transition:none; } }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app" aria-label="3D museum hall"></div>
+
+<section id="intro" aria-labelledby="intro-title">
+  <div class="card">
+    <h1 id="intro-title" class="pixel">JAT ARCADE<br>ARCHIVES</h1>
+    <p>A walk-through museum of video game history. Every machine in the hall is playable.</p>
+    <div class="keys" id="keys-desktop">
+      <kbd>W A S D</kbd><span>walk (or arrow keys)</span>
+      <kbd>DRAG</kbd><span>look around</span>
+      <kbd>E</kbd><span>play the machine in front of you, or click it</span>
+      <kbd>SPACE</kbd><span>the A button while playing</span>
+      <kbd>ESC</kbd><span>stand up from a machine</span>
+    </div>
+    <button class="btn primary pixel" id="enter" disabled>LOADING…</button>
+    <div id="loading" role="status"></div>
+  </div>
+</section>
+
+<div id="top">
+  <div id="brand" class="pixel">JAT ARCADE ARCHIVES</div>
+  <div class="spacer"></div>
+  <button class="btn" id="sound" aria-pressed="true" title="Sound on/off">🔊</button>
+  <button class="btn" id="menuBtn" aria-expanded="false" aria-controls="menu">Exhibits</button>
+</div>
+<nav id="menu" aria-label="Exhibits"></nav>
+
+<div id="focus" role="region" aria-live="polite">
+  <div class="yr pixel"></div>
+  <h2></h2>
+  <p></p>
+  <div class="row">
+    <button class="btn primary" id="playBtn">▶ Play</button>
+    <button class="btn" id="plaqueBtn">Read plaque</button>
+    <span class="hint">E to play</span>
+  </div>
+</div>
+
+<div id="plaque" role="dialog" aria-modal="true" aria-labelledby="plaque-title">
+  <article>
+    <div class="yr pixel"></div>
+    <h2 id="plaque-title"></h2>
+    <div class="body"></div>
+    <p class="how"></p>
+    <p class="note"></p>
+    <button class="btn" id="plaqueClose">Close</button>
+  </article>
+</div>
+
+<div id="playbar"><span id="playHelp"></span><button class="btn" id="exitBtn">Stand up ✕</button></div>
+
+<div id="stick" class="touch walk" aria-hidden="true"><i></i></div>
+<div id="pad" class="touch play" aria-hidden="true">
+  <div class="dpad">
+    <span></span><button data-k="up">▲</button><span></span>
+    <button data-k="left">◀</button><span></span><button data-k="right">▶</button>
+    <span></span><button data-k="down">▼</button><span></span>
+  </div>
+  <button class="abtn" data-k="a">A</button>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

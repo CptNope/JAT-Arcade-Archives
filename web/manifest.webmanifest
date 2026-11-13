@@ -1,0 +1,14 @@
+{
+  "name": "JAT Arcade Archives",
+  "short_name": "Arcade Archives",
+  "description": "A walk-through 3D museum of video game history where every machine is playable.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#05030f",
+  "theme_color": "#0b0820",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
