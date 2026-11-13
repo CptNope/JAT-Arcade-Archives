@@ -57,18 +57,17 @@ export function labelTexture(text, { w = 512, h = 160, bg = '#000', fg = '#fff',
   });
 }
 
-function sideArtTexture() {
+function sideArtTexture({ base = '#0d0b2b', stripes = ['#ff2bd6', '#ff8a00', '#ffe14d'], planet = '#5ce1ff', ring = '#ffe14d' } = {}) {
   return canvasTex(512, 1024, (g, w, h) => {
-    g.fillStyle = '#0d0b2b'; g.fillRect(0, 0, w, h);
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 90; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * 0.7})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
-    const stripes = ['#ff2bd6', '#ff8a00', '#ffe14d'];
     stripes.forEach((c, i) => {
       g.fillStyle = c; g.beginPath();
       g.moveTo(0, 620 + i * 46); g.lineTo(w, 360 + i * 46); g.lineTo(w, 386 + i * 46); g.lineTo(0, 646 + i * 46); g.fill();
     });
     // a little original planet
-    g.fillStyle = '#5ce1ff'; g.beginPath(); g.arc(330, 230, 70, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = '#ffe14d'; g.lineWidth = 8; g.beginPath(); g.ellipse(330, 230, 120, 26, -0.3, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = planet; g.beginPath(); g.arc(330, 230, 70, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = ring; g.lineWidth = 8; g.beginPath(); g.ellipse(330, 230, 120, 26, -0.3, 0, Math.PI * 2); g.stroke();
   });
 }
 
@@ -127,8 +126,9 @@ export function buildTVConsole(game) {
   return { group: g, screen, radius: 0.75 };
 }
 
-// 1978-style upright arcade cabinet (vertical monitor).
-export function buildArcade(game, marquee = 'STAR SIEGE') {
+// Upright arcade cabinet. Options: marquee text and colours, side-art palette, a landscape screen,
+// and the control: 'stick' (joystick + buttons), 'wheel' (steering wheel) or 'ball' (trackball + buttons).
+export function buildArcade(game, marquee = 'STAR SIEGE', { art, glow = '#00e5ff', fg = '#ffe14d', control = 'stick', vector = false } = {}) {
   const g = new THREE.Group();
   const shape = new THREE.Shape();
   const P = [[0, 0], [0.66, 0], [0.66, 0.86], [0.8, 0.95], [0.8, 1.0], [0.58, 1.06], [0.5, 1.1], [0.44, 1.56],
@@ -138,9 +138,9 @@ export function buildArcade(game, marquee = 'STAR SIEGE') {
   const geo = new THREE.ExtrudeGeometry(shape, { depth: W, bevelEnabled: false });
   geo.rotateY(-Math.PI / 2);
   geo.translate(W / 2, 0, -0.4);
-  const art = sideArtTexture();
-  art.repeat.set(1 / 0.8, 1 / 1.88);
-  const sideMat = std(0xffffff, { map: art, roughness: 0.5 });
+  const artTex = sideArtTexture(art);
+  artTex.repeat.set(1 / 0.8, 1 / 1.88);
+  const sideMat = std(0xffffff, { map: artTex, roughness: 0.5 });
   const edgeMat = std(0x111018, { roughness: 0.35, metalness: 0.2 });
   g.add(new THREE.Mesh(geo, [sideMat, edgeMat]));
 
@@ -148,13 +148,14 @@ export function buildArcade(game, marquee = 'STAR SIEGE') {
   const tilt = Math.atan2(0.06, 0.46);
   const bezel = add(g, box(0.62, 0.5, 0.01), std(0x050505, { roughness: 0.2 }), 0, 1.33, 0.47 - 0.4 + 0.004);
   bezel.rotation.x = -tilt;
-  const screen = createScreen(game, 0.38, { curve: 0.13 });
+  const landscape = game.w > game.h;
+  const screen = createScreen(game, landscape ? 0.5 : 0.38, { curve: vector ? 0.06 : 0.13, bright: vector ? 2.0 : 1.6 });
   screen.position.set(0, 1.33, 0.47 - 0.4 + 0.012);
   screen.rotation.x = -tilt;
   g.add(screen);
 
   // marquee (lit)
-  const mq = add(g, new THREE.PlaneGeometry(0.7, 0.24), new THREE.MeshBasicMaterial({ map: labelTexture(marquee, { glow: '#00e5ff', fg: '#ffe14d' }), toneMapped: false }), 0, 1.75, 0.62 - 0.4 + 0.003);
+  const mq = add(g, new THREE.PlaneGeometry(0.7, 0.24), new THREE.MeshBasicMaterial({ map: labelTexture(marquee, { glow, fg }), toneMapped: false }), 0, 1.75, 0.62 - 0.4 + 0.003);
   mq.userData.glow = true;
 
   // control panel: joystick + two buttons on the sloped panel top
@@ -163,10 +164,21 @@ export function buildArcade(game, marquee = 'STAR SIEGE') {
   panel.position.set(0, 1.035, 0.69 - 0.4); panel.rotation.x = ang;
   g.add(panel);
   add(panel, box(0.66, 0.006, 0.2), std(0x1b1b2e, { roughness: 0.3 }), 0, 0.003, 0);
-  add(panel, cyl(0.035, 0.04, 0.01), std(0x111111), -0.15, 0.01, 0);
-  add(panel, cyl(0.007, 0.007, 0.08), std(0x222222, { metalness: 0.7 }), -0.15, 0.05, 0);
-  add(panel, new THREE.SphereGeometry(0.022, 16, 12), std(0xff1744, { roughness: 0.25 }), -0.15, 0.095, 0);
-  for (const [x, c] of [[0.08, 0x00e5ff], [0.16, 0xffe14d]]) add(panel, cyl(0.022, 0.022, 0.02), std(c, { roughness: 0.3 }), x, 0.012, 0);
+  if (control === 'wheel') {
+    const wheel = add(g, new THREE.TorusGeometry(0.13, 0.015, 10, 36), std(0x151515, { roughness: 0.4 }), 0, 1.12, 0.36);
+    wheel.rotation.x = -0.9;
+    add(g, cyl(0.02, 0.02, 0.12), std(0x333333, { metalness: 0.6 }), 0, 1.07, 0.31).rotation.x = -0.9 + Math.PI / 2;
+    add(panel, cyl(0.016, 0.016, 0.02), std(0xff1744), 0.24, 0.012, 0);
+  } else if (control === 'ball') {
+    add(panel, cyl(0.06, 0.06, 0.01), std(0x111111), 0, 0.006, 0);
+    add(panel, new THREE.SphereGeometry(0.045, 20, 14), std(0xd8c39a, { roughness: 0.15, metalness: 0.1 }), 0, 0.012, 0);
+    for (const x of [-0.2, 0.2]) add(panel, cyl(0.022, 0.022, 0.02), std(0xff1744, { roughness: 0.3 }), x, 0.012, 0);
+  } else {
+    add(panel, cyl(0.035, 0.04, 0.01), std(0x111111), -0.15, 0.01, 0);
+    add(panel, cyl(0.007, 0.007, 0.08), std(0x222222, { metalness: 0.7 }), -0.15, 0.05, 0);
+    add(panel, new THREE.SphereGeometry(0.022, 16, 12), std(0xff1744, { roughness: 0.25 }), -0.15, 0.095, 0);
+    for (const [x, c] of [[0.08, 0x00e5ff], [0.16, 0xffe14d]]) add(panel, cyl(0.022, 0.022, 0.02), std(c, { roughness: 0.3 }), x, 0.012, 0);
+  }
   // coin door
   add(g, box(0.3, 0.32, 0.02), std(0x2b2b2b, { metalness: 0.7, roughness: 0.35 }), 0, 0.5, 0.66 - 0.4 + 0.01);
   for (const x of [-0.06, 0.06]) add(g, box(0.05, 0.07, 0.01), new THREE.MeshBasicMaterial({ color: 0xff3b30, toneMapped: false }), x, 0.58, 0.66 - 0.4 + 0.022).userData.glow = true;
@@ -707,6 +719,12 @@ export function buildPrototypeBox(game) {
 }
 
 export const BUILDERS = {
+  arcadeDrive: (gm) => buildArcade(gm, 'NIGHT ROAD', { control: 'wheel', glow: '#ffffff', fg: '#9fb7ff', art: { base: '#08080c', stripes: ['#ffffff', '#9fb7ff', '#3d5afe'], planet: '#1c1c28', ring: '#ffffff' } }),
+  arcadeRocks: (gm) => buildArcade(gm, 'ROCK FIELD', { vector: true, glow: '#7ad8ff', fg: '#ffffff', art: { base: '#0a0f1f', stripes: ['#7ad8ff', '#3a6dd8', '#1c2f7a'], planet: '#8d8d8d', ring: '#d0d0d0' } }),
+  arcadeMoon: (gm) => buildArcade(gm, 'MOON LANDER', { vector: true, glow: '#ffe14d', fg: '#ffffff', art: { base: '#111018', stripes: ['#ffe14d', '#ff9e3d', '#ff5c38'], planet: '#d9d9d9', ring: '#ffe14d' } }),
+  arcadeCity: (gm) => buildArcade(gm, 'CITY SHIELD', { control: 'ball', glow: '#ff5252', fg: '#ffeb3b', art: { base: '#140612', stripes: ['#ff5252', '#ffeb3b', '#69f0ae'], planet: '#4fc3f7', ring: '#ff5252' } }),
+  arcadePest: (gm) => buildArcade(gm, 'GARDEN PEST', { control: 'ball', glow: '#ff6ec7', fg: '#7cff6b', art: { base: '#0b1a0d', stripes: ['#7cff6b', '#ff6ec7', '#ffeb3b'], planet: '#ff9e3d', ring: '#7cff6b' } }),
+  arcadeHop: (gm) => buildArcade(gm, 'HOP ACROSS', { glow: '#4cc9f0', fg: '#ffe14d', art: { base: '#0b1736', stripes: ['#2fa36b', '#4cc9f0', '#ffe14d'], planet: '#ffe14d', ring: '#2fa36b' } }),
   paperdesk: buildPaperDesk, ferranti: buildFerranti, midsac: buildMidsac, protobox: buildPrototypeBox,
   ibmterm: (gm) => buildTeletype(gm, 0x7f93a8), terminal3: (gm) => buildTerminal(gm, 0x3b4250),
   nimrod: buildNimrod, whirlwind: buildWhirlwind, teletype: buildTeletype, plato: buildPlato,
