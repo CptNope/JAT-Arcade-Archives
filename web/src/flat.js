@@ -4,6 +4,7 @@ import { EXHIBITS, WINGS, NOTE, RECON_NOTE } from './exhibits.js';
 import { GAMES } from './registry.js';
 import { Sfx } from './sfx.js';
 import { initVisitor } from './visitor.js';
+import { initInside } from './inside.js';
 import { NO_INPUT } from './games/base.js';
 
 const KEYMAP = {
@@ -40,6 +41,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
       <div class="flat-bar">
         <button class="btn" data-act="back">← All machines</button>
         <strong class="flat-title"></strong>
+        <button class="btn" data-act="inside" title="How this machine works">🔍</button>
         <button class="btn" data-act="about" aria-expanded="false">About</button>
       </div>
       <div class="flat-stage"><canvas class="flat-screen" aria-label="Game screen"></canvas></div>
@@ -122,7 +124,9 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     $('.flat-play').hidden = true; list.hidden = false; root.classList.remove('playing');
     held.clear(); taps.clear(); padHeld.clear();
   }
-  $('[data-act="back"]').addEventListener('click', close);
+  $('[data-act="back"]').addEventListener('click', () => { inside.close(); close(); });
+  const inside = initInside();
+  $('[data-act="inside"]').addEventListener('click', () => { if (!current) return; if (inside.isOpen) inside.close(); else { inside.open(current); visitor.passport.readPlaque(current.id); } });
   $('[data-act="about"]').addEventListener('click', (e) => {
     const about = $('.flat-about'); about.hidden = !about.hidden;
     if (!about.hidden && current) visitor.passport.readPlaque(current.id);

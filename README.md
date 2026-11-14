@@ -84,6 +84,8 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 - **Machine of the day:** the same featured machine for every visitor, with a streak achievement.
 - **Guided tour:** walks you through every machine in date order, with spoken narration and captions.
 
+- **Inside the machine:** the 🔍 button pulls a machine's model apart into an exploded view and opens an animated diagram of how its hardware works: raster TV, vector beam, oscilloscope, analog tube, lamp panels, memory dots, teleprinter, character terminal or LCD.
+
 Everything works in 3D and 2D mode. Progress stays in the visitor's browser; scores go to the site when the page sets `window.JAT_ARCADE_CONFIG = { scoresUrl, nonce }` (the WordPress plugin does this).
 
 ## WordPress plugin

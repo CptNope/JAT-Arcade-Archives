@@ -11,6 +11,7 @@ import { Sfx } from './sfx.js';
 import { GAMES } from './registry.js';
 import { startFlat } from './flat.js';
 import { initVisitor } from './visitor.js';
+import { initInside } from './inside.js';
 import { NO_INPUT } from './games/base.js';
 
 const $ = (s) => document.querySelector(s);
@@ -357,7 +358,7 @@ for (const ex of EXHIBITS) {
 
   const lectWorld = new THREE.Vector3(); lect.getWorldPosition(lectWorld);
   built.screen.geometry.computeBoundingSphere();
-  exhibits.push({ ...ex, game, screen: built.screen, radius: built.radius, root, lectern: lectWorld, frameAcc: 0, room: roomOf(ex.pos[0], ex.pos[2]) });
+  exhibits.push({ ...ex, game, screen: built.screen, radius: built.radius, model: built.group, root, lectern: lectWorld, frameAcc: 0, room: roomOf(ex.pos[0], ex.pos[2]) });
 }
 
 // ---------- lights: a fixed pool, re-aimed at whichever room the visitor is in ----------------
@@ -444,6 +445,44 @@ function showFocus(i) {
   focusEl.classList.add('show');
 }
 $('#playBtn').addEventListener('click', () => focused >= 0 && sitDown(focused));
+$('#insideBtn').addEventListener('click', () => focused >= 0 && lookInside(focused));
+
+// ---- inside the machine: pull the model apart and explain the hardware
+let exploded = -1, explodeT = 0, explodeTarget = 0;
+const inside = initInside({ onClose: () => { explodeTarget = 0; frameForPanel(false); } });
+// shift the 3D view so the machine sits beside the panel (desktop) or above it (phones)
+function frameForPanel(on) {
+  const { w, h } = size();
+  if (!on) { camera.clearViewOffset(); return; }
+  if (w > 700) camera.setViewOffset(w, h, Math.min(200, w * 0.16), 0, w, h);
+  else camera.setViewOffset(w, h, 0, h * 0.22, w, h);
+}
+function lookInside(i) {
+  if (active >= 0) return;
+  if (exploded >= 0 && exploded !== i) resetExplode(exploded);
+  exploded = i; explodeTarget = 1;
+  const parts = exhibits[i].model.children;
+  if (!exhibits[i].parts) {
+    const box = new THREE.Box3().setFromObject(exhibits[i].model), centre = box.getCenter(new THREE.Vector3());
+    exhibits[i].model.worldToLocal(centre);
+    exhibits[i].parts = parts.map(o => {
+      const b = new THREE.Box3().setFromObject(o), c = exhibits[i].model.worldToLocal(b.getCenter(new THREE.Vector3()));
+      const dir = c.sub(centre); dir.y *= 0.6; if (dir.lengthSq() < 1e-4) dir.set(0, 1, 0);
+      return { o, base: o.position.clone(), dir: dir.normalize().multiplyScalar(0.3 + Math.min(0.6, b.getSize(new THREE.Vector3()).length() * 0.3)) };
+    });
+  }
+  inside.open(exhibits[i]); visitor.passport.readPlaque(exhibits[i].id); frameForPanel(true);
+}
+function resetExplode(i) { for (const p of exhibits[i].parts || []) p.o.position.copy(p.base); }
+function stepExplode(dt) {
+  if (exploded < 0) return;
+  explodeT += (explodeTarget - explodeT) * Math.min(1, dt * 7);
+  const e = explodeT * explodeT * (3 - 2 * explodeT);
+  for (const p of exhibits[exploded].parts) p.o.position.copy(p.base).addScaledVector(p.dir, e);
+  if (explodeTarget === 0 && explodeT < 0.002) { resetExplode(exploded); exploded = -1; explodeT = 0; }
+  // walking away closes the view
+  if (explodeTarget === 1 && camera.position.distanceTo(new THREE.Vector3(exhibits[exploded].pos[0], EYE, exhibits[exploded].pos[2])) > 7) inside.close();
+}
 $('#plaqueBtn').addEventListener('click', () => focused >= 0 && openPlaque(focused));
 
 const plaqueEl = $('#plaque');
@@ -501,6 +540,7 @@ function playPose(i) {
 
 function sitDown(i) {
   if (active === i || tween) return;
+  inside.close();
   sfx.unlock();
   closePlaque(); toggleMenu(false);
   walkPose.pos.copy(player.pos);
@@ -714,6 +754,7 @@ function frame() {
   const gp = pollGamepad();
   const modal = plaqueEl.classList.contains('open');
 
+  stepExplode(dt);
   if (tween) stepTween(dt);
   else if (active < 0 && !modal && !visitor.busy) walk(dt, gp);
   const camRoom = roomOf(camera.position.x, camera.position.z);
@@ -784,7 +825,7 @@ canvas.addEventListener('webglcontextlost', (e) => {
 // resize to the container (works inside an embed, on rotation and as mobile toolbars come and go)
 function onResize() {
   const { w, h } = size();
-  camera.aspect = w / h; camera.updateProjectionMatrix();
+  camera.aspect = w / h; if (inside?.isOpen) frameForPanel(true); camera.updateProjectionMatrix();
   renderer.setSize(w, h); composer.setSize(w, h);
   bloom.resolution.set(w * bloomScale, h * bloomScale);
   if (active >= 0 && !tween) { const p = playPose(active); camera.position.copy(p.pos); camera.quaternion.copy(p.quat); }
@@ -821,7 +862,7 @@ enter.addEventListener('click', () => {
 enter.focus();
 
 // debugging / embedding hook (the WordPress plugin can drive the museum through this)
-window.JATArcade = { mode: '3d', visitor, exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
+window.JATArcade = { mode: '3d', visitor, inside, lookInside, exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
 
 // PWA: register the service worker when the page is served from its own origin
 if ('serviceWorker' in navigator && window.top === window.self && !window.JAT_ARCADE_CONFIG) {
