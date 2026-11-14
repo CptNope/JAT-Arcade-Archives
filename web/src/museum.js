@@ -194,6 +194,8 @@ const WING4 = { x0: -HALL.x, x1: -HALL.x + 16, z0: -HALL.z - 16, z1: -HALL.z };
 const NORTH_DOOR_X = -7;
 const WING5 = { x0: -HALL.x + 16, x1: -HALL.x + 32, z0: -HALL.z - 16, z1: -HALL.z };
 const NORTH_DOOR2_X = 7;
+const SOUTH_DOOR_X = 12.8;
+const WING6 = { x0: SOUTH_DOOR_X - 8, x1: SOUTH_DOOR_X + 8, z0: HALL.z, z1: HALL.z + 16 };
 // Where the visitor may stand: each room shrunk by a margin, plus the doorway between them.
 const WALKABLE = [
   { x0: -HALL.x + 0.35, x1: HALL.x - 0.35, z0: -HALL.z + 0.35, z1: HALL.z - 0.35 },
@@ -205,12 +207,14 @@ const WALKABLE = [
   { x0: NORTH_DOOR_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
   { x0: WING5.x0 + 0.35, x1: WING5.x1 - 0.35, z0: WING5.z0 + 0.35, z1: WING5.z1 - 0.35 },
   { x0: NORTH_DOOR2_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR2_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
+  { x0: WING6.x0 + 0.35, x1: WING6.x1 - 0.35, z0: WING6.z0 + 0.35, z1: WING6.z1 - 0.35 },
+  { x0: SOUTH_DOOR_X - DOOR.w / 2 + 0.3, x1: SOUTH_DOOR_X + DOOR.w / 2 - 0.3, z0: HALL.z - 0.6, z1: HALL.z + 0.6 },
 ];
 const walkable = (x, z) => WALKABLE.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 
 let tapeReels = [];
 function buildHall() {
-  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: [NORTH_DOOR_X, NORTH_DOOR2_X] } });
+  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: [NORTH_DOOR_X, NORTH_DOOR2_X], south: SOUTH_DOOR_X } });
   // title + wing signs
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.15),
     new THREE.MeshBasicMaterial({ map: labelTexture('JAT ARCADE ARCHIVES', { w: 1600, h: 256, bg: 'rgba(0,0,0,0)', glow: '#ff2bd6', fg: '#ffe14d', font: '900 150px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
@@ -240,6 +244,30 @@ function buildHall() {
   for (const [w, h, d, x, y, z] of [[2.2, 0.42, 0.9, 0, 0.21, 0], [2.2, 0.5, 0.2, 0, 0.6, 0.35], [0.2, 0.3, 0.9, -1.0, 0.55, 0], [0.2, 0.3, 0.9, 1.0, 0.55, 0]]) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), fabric); m.position.set(x, y, z); sofa.add(m);
   }
+
+  // ---- wing 6: the 8-bit console era (a late-80s bedroom: blue carpet, posters, a bean bag) ----
+  wallSign('8-BIT CONSOLES  ↓', { glow: '#3b6bff', fg: '#ffffff', w: 3.0, x: SOUTH_DOOR_X, y: 3.25, z: HALL.z - 0.03, ry: Math.PI });
+  const blueCarpet = carpetTexture(); blueCarpet.repeat.set(5, 5);
+  buildRoom({ ...WING6, floor: new THREE.MeshStandardMaterial({ map: blueCarpet, roughness: 0.95, color: 0x8fb0ff }), wall: 0x26306a, ceil: 0x121638, trims: [0xff3b3b, 0xffffff, 0x3b6bff], doors: { north: SOUTH_DOOR_X } });
+  wallSign('THE 8-BIT CONSOLE ERA · 1983–1989', { glow: '#ff3b3b', fg: '#ffffff', w: 6.4, x: SOUTH_DOOR_X, y: 3.25, z: WING6.z1 - 0.03, ry: Math.PI });
+  wallSign('↑  MAIN HALL', { glow: '#ff2bd6', fg: '#ffffff', w: 2.2, x: SOUTH_DOOR_X, y: 3.25, z: WING6.z0 + 0.03, ry: 0 });
+  // posters: original designs, plain shapes and words
+  const poster = (text, bg, fg, x, z, ry) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.25), new THREE.MeshStandardMaterial({ map: labelTexture(text, { w: 360, h: 500, bg, fg, glow: fg, font: '900 64px "Arial Black", Impact, sans-serif' }), roughness: 0.8 }));
+    m.position.set(x, 1.9, z); m.rotation.y = ry; scene.add(m);
+  };
+  poster('1UP', '#ff3b3b', '#ffffff', WING6.x0 + 0.03, 13.8, Math.PI / 2);
+  poster('PRESS START', '#2a5ad8', '#ffe14d', WING6.x1 - 0.03, 13.8, -Math.PI / 2);
+  poster('GAME OVER?', '#111111', '#7cff6b', 12.8, WING6.z1 - 0.03, Math.PI);
+  // a bean bag and a shelf of cartridge boxes
+  const bag = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 16), new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.9 }));
+  bag.scale.set(1, 0.55, 1); bag.position.set(12.8, 0.3, 15.5); scene.add(bag);
+  const shelf = new THREE.Group(); shelf.position.set(12.8, 0, 17.2); scene.add(shelf);
+  const plank = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 0.3), new THREE.MeshStandardMaterial({ map: woodFloorTexture(), roughness: 0.6 }));
+  plank.position.set(0, 0.45, 0); shelf.add(plank);
+  const boxCols = [0xff3b3b, 0xffe14d, 0x2a5ad8, 0x7cff6b, 0xb46cff, 0xff8c1a, 0xffffff, 0x2ac0a0];
+  boxCols.forEach((col, i) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 0.18), new THREE.MeshStandardMaterial({ color: col, roughness: 0.6 })); b.position.set(-0.6 + i * 0.165, 0.58, 0); b.rotation.z = i === 7 ? 0.25 : 0; shelf.add(b); });
+  for (const x of [-0.65, 0.65]) { const side = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.3), new THREE.MeshStandardMaterial({ color: 0x5a3a20 })); side.position.set(x, 0.225, 0); shelf.add(side); }
 
   // ---- wing 3: experiments & prototypes (a wood-panelled research lab) ----
   const parquet = woodFloorTexture(); parquet.repeat.set(8, 7);
@@ -340,8 +368,9 @@ const ROOM_POINTS = {
   experiments: [[-17.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-22.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-27.5, HALL.h - 0.8, 0, 0xffd8a0, 5]],
   arcade: [[-10, 3.4, -12, 0xff5252, 6], [-4, 3.4, -18, 0x4cc9f0, 6], [-6.5, 3.4, -15, 0xffeb3b, 3]],
   home: [[5, 3.4, -12, 0xffd8a0, 6], [12, 3.4, -18, 0xffb070, 6], [9.5, 3.4, -15, 0xffe7c0, 3]],
+  console: [[8.5, 3.4, 13, 0xffa0a0, 7], [17, 3.4, 13, 0xa8c0ff, 7], [12.8, 3.4, 19, 0xffffff, 6]],
 };
-const SPOT_POOL = Math.max(...['hall', 'mainframe', 'experiments', 'arcade', 'home'].map(r => exhibits.filter(e => e.room === r).length));
+const SPOT_POOL = Math.max(...Object.keys(ROOM_POINTS).map(r => exhibits.filter(e => e.room === r).length));
 const spots = Array.from({ length: SPOT_POOL }, () => { const sp = new THREE.SpotLight(0xfff1dd, 0, 9, 0.5, 0.65, 1.4); scene.add(sp, sp.target); return sp; });
 const points = Array.from({ length: 3 }, () => { const p = new THREE.PointLight(0xffffff, 0, 12, 1.6); scene.add(p); return p; });
 let litRoom = null;
@@ -357,7 +386,7 @@ function lightRoom(room) {
   });
   points.forEach((p, k) => { const [x, y, z, c, i] = ROOM_POINTS[room][k]; p.position.set(x, y, z); p.color.set(c); p.intensity = i; });
 }
-function roomOf(x, z = 0) { return z < -HALL.z ? (x > WING4.x1 ? 'home' : 'arcade') : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
+function roomOf(x, z = 0) { return z > HALL.z ? 'console' : z < -HALL.z ? (x > WING4.x1 ? 'home' : 'arcade') : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
 
 // ---------- UI --------------------------------------------------------------------------------
 const focusEl = $('#focus');
@@ -608,6 +637,10 @@ function gameInput(gp) {
 const colliders = exhibits.flatMap(ex => [
   { x: ex.pos[0], z: ex.pos[2], r: ex.radius + 0.25 },
   { x: ex.lectern.x, z: ex.lectern.z, r: 0.35 },
+]).concat([
+  { x: 9.5, z: -14.5, r: 1.1 },   // the sofa in the home wing
+  { x: 12.8, z: 15.5, r: 0.6 },   // bean bag
+  { x: 12.8, z: 17.2, r: 0.75 },  // cartridge shelf
 ]);
 function walk(dt, gp) {
   let f = 0, s = 0;

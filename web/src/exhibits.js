@@ -348,6 +348,67 @@ export const EXHIBITS = [
     ],
     play: 'BRICKFALL: Left/Right to move, A to launch the ball.',
   },
+  // ---- The 8-Bit Console Era: the south wing ---------------------------------------------------
+  {
+    id: 'dirtjump', year: 1984, title: 'Build Your Own Track', machine: 'console8Grey', game: 'dirtjump',
+    pos: [5.6, 0, 11], rot: Math.PI / 2,
+    short: 'Motocross, engine heat, and one of the first console level editors.',
+    plaque: [
+      'Nintendo\'s Excitebike came out for the Famicom in Japan on November 30, 1984, and was a launch title for the NES in North America in 1985. Riders balanced speed against engine heat: push too hard and the bike overheats, while cooling zones on the track bring the temperature down.',
+      'Its Design mode let players build their own tracks from 19 kinds of obstacles, one of the earliest level editors on a home console. In Japan, tracks could be saved to the Famicom\'s cassette data recorder.',
+    ],
+    play: 'DIRT JUMP: hold A for throttle, hold Right as well for turbo (watch the heat). Up/Down change lanes; Left/Right lean in the air so you land level.',
+  },
+  {
+    id: 'blockhopper', year: 1985, title: 'The Comeback', machine: 'console8', game: 'blockhopper',
+    pos: [5.6, 0, 16.5], rot: Math.PI / 2,
+    short: 'After the crash, a platform game brings home consoles back.',
+    plaque: [
+      'After the video game crash of 1983, many American retailers wanted nothing more to do with home consoles. Nintendo\'s NES went on sale in a test market in New York City in October 1985, with Super Mario Bros. among its first games.',
+      'Super Mario Bros. (Japan, September 1985) was the best-selling video game for nearly three decades, with more than 40 million copies sold. It is credited with helping revive the industry and with popularizing the side-scrolling platform game.',
+    ],
+    play: 'BLOCK HOPPER: Left/Right to run, A to jump (hold it for a higher jump). Stomp beetles, bump the gem blocks and reach the flag.',
+  },
+  {
+    id: 'starlancer', year: 1985, title: 'Pick Your Power', machine: 'console8Black', game: 'starlancer',
+    pos: [9.8, 0, 21], rot: Math.PI,
+    short: 'A shooter where you choose your own upgrades, and the birth of a famous cheat code.',
+    plaque: [
+      'Konami\'s arcade shooter Gradius (1985) let players choose their own upgrades. Every capsule moved a light along a power meter, and the player decided when to cash it in: speed, missiles, a double shot, a laser, an "option" drone or a shield.',
+      'Porting it to the Famicom in 1986, programmer Kazuhisa Hashimoto found it too hard to test, so he added a secret button sequence that gave full power-ups. He forgot to remove it, players discovered it, and it became known as the Konami Code.',
+    ],
+    play: 'STAR LANCER: arrows to fly; your ship fires by itself. Shoot the red craft for capsules, then press A to take the lit power-up.',
+  },
+  {
+    id: 'swordkey', year: 1986, title: 'A World to Explore', machine: 'console8White', game: 'swordkey',
+    pos: [15.8, 0, 21], rot: Math.PI,
+    short: 'An open world, no map, and the first cartridge that saved your game.',
+    plaque: [
+      'The Legend of Zelda launched alongside the Famicom Disk System in Japan on February 21, 1986. Shigeru Miyamoto drew on his childhood explorations of the countryside near Kyoto: the world was open, and players had to find their own way.',
+      'The disk system could save progress. For the 1987 release in North America, Nintendo put a battery in the gold cartridge instead, making it the first NES game that saved your progress without passwords.',
+    ],
+    play: 'SWORD & KEY: arrows to walk, A to swing your sword. Find the three key shards, then enter the cave in the middle of the map.',
+  },
+  {
+    id: 'herosroad', year: 1986, title: 'The Role-Playing Game Comes Home', machine: 'console8', game: 'herosroad',
+    pos: [20, 0, 16.5], rot: -Math.PI / 2,
+    short: 'Menus, levels and a long road: the console RPG takes shape.',
+    plaque: [
+      'Dragon Quest (Famicom, May 27, 1986) set out to be a role-playing game anyone could enjoy. Designer Yuji Horii distilled ideas from computer RPGs such as Wizardry and Ultima into simple menus and a clear story.',
+      'Manga artist Akira Toriyama designed its monsters and Koichi Sugiyama composed the music. It became the model for the Japanese console RPG, and reached North America in 1989 as Dragon Warrior.',
+    ],
+    play: 'HERO\'S ROAD: arrows to walk. In battle, Up/Down choose FIGHT, HEAL or RUN and A confirms. Rest at the town; the wyrm waits in the castle.',
+  },
+  {
+    id: 'jeweldrop', year: 1989, title: 'Falling Into Place', machine: 'pocketBrick', game: 'jeweldrop',
+    pos: [20, 0, 11], rot: -Math.PI / 2,
+    short: 'Falling-block puzzles become the perfect pocket game.',
+    plaque: [
+      'Alexey Pajitnov wrote Tetris in 1984 on an Elektronika 60 computer at the Soviet Academy of Sciences in Moscow. When Nintendo\'s Game Boy reached North America on July 31, 1989, Tetris came in the box, and falling-block puzzles went everywhere.',
+      'Columns, created in 1989 by Hewlett-Packard engineer Jay Geertsen, dropped columns of three jewels and cleared any three in a row, diagonals included. Sega bought the rights in 1990.',
+    ],
+    play: 'JEWEL DROP: Left/Right move, A cycles the jewels, Down drops faster, Up drops at once. Match three or more in any direction.',
+  },
 ];
 
 export const NOTE = 'Machines here are original era-style models, not replicas of real products. Every game is an original recreation of its genre, written for this museum.';
@@ -358,8 +419,9 @@ export const WINGS = [
   { id: 'mainframe', title: 'The Mainframe Era', years: '1951–1976' },
   { id: 'arcade', title: 'The Arcade Boom', years: '1976–1981' },
   { id: 'home', title: 'Home Computers & Consoles', years: '1980–1984' },
+  { id: 'console', title: 'The 8-Bit Console Era', years: '1983–1989' },
   { id: 'golden', title: 'The Golden Age', years: '1972–1989' },
 ];
 
-// Each exhibit's wing follows from where it stands (east room, west room, or the main hall's two rows).
-for (const ex of EXHIBITS) ex.wing ??= ex.pos[2] < -7 ? (ex.pos[0] > 1.5 ? 'home' : 'arcade') : ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';
+// Each exhibit's wing follows from where it stands (which room, or the main hall's two rows).
+for (const ex of EXHIBITS) ex.wing ??= ex.pos[2] > 7 ? 'console' : ex.pos[2] < -7 ? (ex.pos[0] > 1.5 ? 'home' : 'arcade') : ex.pos[0] > 14.5 ? 'mainframe' : ex.pos[0] < -14.5 ? 'experiments' : ex.pos[2] > 0 ? 'pioneers' : 'golden';

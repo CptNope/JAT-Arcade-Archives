@@ -12,9 +12,9 @@ A walk-through 3D museum of video game history where every machine is playable, 
 
 == Description ==
 
-JAT Arcade Archives puts a playable museum of computer and video game history on your site. Visitors walk through rooms of era-style machines, from a 1947 cathode-ray tube game to the home computers of the early 1980s, read the plaque on each one, and sit down to play.
+JAT Arcade Archives puts a playable museum of computer and video game history on your site. Visitors walk through rooms of era-style machines, from a 1947 cathode-ray tube game to the 8-bit consoles of the late 1980s, read the plaque on each one, and sit down to play.
 
-* 34 playable machines in six wings, each an original recreation of its genre (no ROMs, no copyrighted characters).
+* 40 playable machines in seven wings, each an original recreation of its genre (no ROMs, no copyrighted characters).
 * High-score boards on every machine with arcade-style initials, shared by everyone who plays on your site.
 * A museum passport with a stamp for every machine, achievements and printable wing certificates.
 * A machine of the day and a narrated guided tour.
@@ -53,7 +53,7 @@ Yes. If 3D graphics aren't available, the museum switches to a 2D arcade with ev
 == Changelog ==
 
 = 0.1.0 =
-* First release: 34 machines, block and shortcodes, shared high scores, passport, machine of the day and guided tour.
+* First release: 40 machines in seven wings, block and shortcodes, shared high scores, passport, machine of the day and guided tour.
 
 == Third-party code ==
 

@@ -2,7 +2,7 @@
 
 A walk-through 3D museum of video game history, built with three.js. Every machine in the hall is playable.
 
-Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**, one on the west wall to **Experiments & Prototypes (1948–1977)**, and two on the north wall to **The Arcade Boom (1976–1981)** and **Home Computers & Consoles (1980–1984)**.
+Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The Golden Age (1972–1989)**. A doorway on the east wall leads to **The Mainframe Era (1951–1976)**, one on the west wall to **Experiments & Prototypes (1948–1977)**, two on the north wall to **The Arcade Boom (1976–1981)** and **Home Computers & Consoles (1980–1984)**, and one on the south wall to **The 8-Bit Console Era (1983–1989)**.
 
 | Year | Exhibit | Machine model | Playable game |
 |---|---|---|---|
@@ -35,6 +35,12 @@ Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The
 | 1982 | Choplifter | beige home computer | **Chopper Rescue** |
 | 1983 | Lode Runner | silver home computer | **Gold Digger** |
 | 1984 | Boulder Dash | black home computer | **Rock & Gem** |
+| 1984 | Excitebike *(8-Bit Console room)* | TV cabinet + grey console + pads | **Dirt Jump** |
+| 1985 | Super Mario Bros. | TV cabinet + charcoal console | **Block Hopper** |
+| 1985 | Gradius | TV cabinet + black console | **Star Lancer** (power meter) |
+| 1986 | The Legend of Zelda | TV cabinet + white console + disk drive | **Sword & Key** |
+| 1986 | Dragon Quest | TV cabinet + charcoal console | **Hero's Road** (turn-based RPG) |
+| 1989 | Tetris and Columns | landscape pocket console on a plinth | **Jewel Drop** |
 | 1972 | Home TV games | wood-grain TV + console + paddles | **Volley** |
 | 1978 | Arcade fixed shooters | upright cabinet | **Star Siege** |
 | 1980 | Maze-chase cocktail tables | cocktail table | **Gem Runner** |
@@ -65,7 +71,7 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 ## Works on every device
 
 - **Adaptive quality.** In Auto mode the resolution, and then the glow, drop when the frame rate does. You can also pick High or Low in ⚙ settings (remembered per browser).
-- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 34 exhibits at once and shaders never recompile mid-walk.
+- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 40 exhibits at once and shaders never recompile mid-walk.
 - **Offscreen machines pause.** Only screens in view, within 26 m, run their demos and upload frames.
 - **2D mode.** `src/main.js` boots the 3D museum only when WebGL works. If WebGL is missing, the three.js download fails, or the GPU drops its context, every game opens in a plain 2D arcade (`src/flat.js`, which never loads three.js). Visitors can also choose it in settings or link to `#2d`.
 - **Zoom.** While playing, the game can fill the screen with crisp, whole-number pixel scaling. It's on by default on small screens.
