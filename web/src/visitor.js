@@ -132,7 +132,7 @@ export class Passport {
 export function featuredFor(date = today()) {
   let h = 2166136261;
   for (const c of date) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
-  const sorted = [...EXHIBITS].sort((a, b) => a.id.localeCompare(b.id));
+  const sorted = EXHIBITS.filter(e => e.id !== 'makerlab').sort((a, b) => a.id.localeCompare(b.id)); // the Maker Lab has no fixed score to beat
   return sorted[h % sorted.length];
 }
 

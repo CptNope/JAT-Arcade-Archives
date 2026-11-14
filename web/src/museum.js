@@ -12,6 +12,7 @@ import { GAMES } from './registry.js';
 import { startFlat } from './flat.js';
 import { initVisitor } from './visitor.js';
 import { initInside } from './inside.js';
+import { shareLevel } from './share.js';
 import { NO_INPUT } from './games/base.js';
 
 const $ = (s) => document.querySelector(s);
@@ -548,6 +549,7 @@ function sitDown(i) {
   active = i;
   document.body.classList.add('playing');
   $('#playHelp').textContent = exhibits[i].play + '  ·  Esc to stand up';
+  $('#shareBtn').hidden = !exhibits[i].game.levelCode;
   showFocus(-1); settings.hidden = true;
   startTween(playPose(i), () => { exhibits[i].game.start(); if (Math.min(innerWidth, innerHeight) < 520) setZoom(true); });
 }
@@ -806,6 +808,7 @@ function setZoom(on) {
   $('#zoomBtn').textContent = on ? '3D view' : 'Zoom';
 }
 $('#zoomBtn').addEventListener('click', () => setZoom(!zoomOn));
+$('#shareBtn').addEventListener('click', () => { if (active >= 0) shareLevel(exhibits[active].game, visitor.toast); });
 zoomEl.addEventListener('pointerdown', () => taps.add('a'));
 
 // pause rendering in hidden tabs (saves battery); resume when visible
@@ -855,7 +858,7 @@ enter.addEventListener('click', () => {
   sfx.unlock();
   $('#intro').classList.add('hide');
   const hash = location.hash.slice(1);
-  const i = exhibits.findIndex(e => e.id === hash);
+  const i = exhibits.findIndex(e => e.id === hash || (hash.startsWith('maker=') && e.id === 'makerlab'));
   if (i >= 0) goTo(i);
   canvas.focus?.();
 });

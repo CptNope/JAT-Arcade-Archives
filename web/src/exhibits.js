@@ -400,6 +400,16 @@ export const EXHIBITS = [
     play: 'HERO\'S ROAD: arrows to walk. In battle, Up/Down choose FIGHT, HEAL or RUN and A confirms. Rest at the town; the wyrm waits in the castle.',
   },
   {
+    id: 'makerlab', year: 1983, title: 'Build It Yourself', machine: 'microBeige', game: 'makerlab',
+    pos: [12.8, 0, 11.5], rot: Math.PI,
+    short: 'Construction sets turn players into designers. Make a level and share it.',
+    plaque: [
+      'Bill Budge\'s Pinball Construction Set (BudgeCo, 1982; Electronic Arts, 1983) let players build their own pinball tables by dropping parts onto a table. It is credited with starting the "construction set" kind of game.',
+      'Level editors soon followed in games such as Lode Runner and Excitebike. Today millions of players share levels they have made. Build one here, play it, and share it with a link.',
+    ],
+    play: 'MAKER LAB: arrows move the cursor; go up into the palette and press A to pick a tile, then A to place it (hold A to paint). Pick ▶GO to play. While playing, hold Down to edit again.',
+  },
+  {
     id: 'jeweldrop', year: 1989, title: 'Falling Into Place', machine: 'pocketBrick', game: 'jeweldrop',
     pos: [20, 0, 11], rot: -Math.PI / 2,
     short: 'Falling-block puzzles become the perfect pocket game.',

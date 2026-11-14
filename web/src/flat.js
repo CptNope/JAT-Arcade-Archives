@@ -5,6 +5,7 @@ import { GAMES } from './registry.js';
 import { Sfx } from './sfx.js';
 import { initVisitor } from './visitor.js';
 import { initInside } from './inside.js';
+import { shareLevel } from './share.js';
 import { NO_INPUT } from './games/base.js';
 
 const KEYMAP = {
@@ -41,6 +42,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
       <div class="flat-bar">
         <button class="btn" data-act="back">← All machines</button>
         <strong class="flat-title"></strong>
+        <button class="btn" data-act="share" hidden title="Copy a link to your level">🔗</button>
         <button class="btn" data-act="inside" title="How this machine works">🔍</button>
         <button class="btn" data-act="about" aria-expanded="false">About</button>
       </div>
@@ -115,6 +117,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     for (const t of [...ex.plaque, ex.play, ex.recon ? RECON_NOTE : NOTE]) { const p = document.createElement('p'); p.textContent = t; about.appendChild(p); }
     about.hidden = true; $('[data-act="about"]').setAttribute('aria-expanded', 'false');
     list.hidden = true; $('.flat-play').hidden = false; root.classList.add('playing');
+    $('[data-act="share"]').hidden = !game.levelCode;
     // absolute URL: the WordPress embed sets a <base>
     try { history.replaceState(null, '', location.pathname + location.search + '#' + ex.id); } catch { /* sandboxed */ }
     fit(); scrollTo(0, 0);
@@ -126,6 +129,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
   }
   $('[data-act="back"]').addEventListener('click', () => { inside.close(); close(); });
   const inside = initInside();
+  $('[data-act="share"]').addEventListener('click', () => game && shareLevel(game, visitor.toast));
   $('[data-act="inside"]').addEventListener('click', () => { if (!current) return; if (inside.isOpen) inside.close(); else { inside.open(current); visitor.passport.readPlaque(current.id); } });
   $('[data-act="about"]').addEventListener('click', (e) => {
     const about = $('.flat-about'); about.hidden = !about.hidden;
@@ -200,7 +204,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
 
   // open the exhibit named in the address, if any
   const id = location.hash.slice(1);
-  const ex = EXHIBITS.find(e => e.id === id);
+  const ex = EXHIBITS.find(e => e.id === id || (id.startsWith('maker=') && e.id === 'makerlab'));
   if (ex) open(ex);
   window.JATArcade = { mode: '2d', visitor, open: (id2) => { const e = EXHIBITS.find(x => x.id === id2); if (e) open(e); }, close, games };
 }
