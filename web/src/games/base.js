@@ -19,6 +19,11 @@ export function saveHi(id, v) {
   try { localStorage.setItem(HI_KEY + id, String(v)); } catch { /* storage may be blocked */ }
 }
 
+// The museum's visitor features (high scores, passport, daily challenge) listen for these.
+function emit(name, detail) {
+  try { globalThis.dispatchEvent?.(new CustomEvent(name, { detail })); } catch { /* no DOM events (tests) */ }
+}
+
 export class Game {
   constructor({ id, w, h, sfx, fg = '#fff', bg = '#000', font = 'Courier New, monospace' }) {
     this.id = id;
@@ -39,13 +44,14 @@ export class Game {
   }
 
   // --- lifecycle -------------------------------------------------------
-  start() { this.mode = 'play'; this.score = 0; this.wipe(); this.reset(); this.sound('start'); }
+  start() { this.mode = 'play'; this.score = 0; this.wipe(); this.reset(); this.sound('start'); emit('jat:start', { id: this.id }); }
   attract() { this.mode = 'attract'; this.score = 0; this.wipe(); this.reset(); }
   wipe() { this.ctx.fillStyle = '#000'; this.ctx.fillRect(0, 0, this.w, this.h); } // clears phosphor trails
   gameOver() {
     if (this.mode === 'attract') { this.reset(); return; }
     if (this.score > this.hi) { this.hi = this.score; saveHi(this.id, this.hi); }
     this.mode = 'over'; this.overT = 1.2; this.sound('over');
+    emit('jat:gameover', { id: this.id, score: this.score });
   }
   addScore(n) { this.score += n; }
   sound(name) { if (this.mode === 'play' && this.sfx) this.sfx.play(name); }

@@ -1,0 +1,14 @@
+{
+  "name": "jat-arcade-archives",
+  "private": true,
+  "type": "module",
+  "description": "Build tooling for the JAT Arcade Archives WordPress plugin. The museum itself needs no build step.",
+  "scripts": {
+    "build:plugin": "node tools/build-plugin.mjs"
+  },
+  "devDependencies": {
+    "three": "0.187.0",
+    "@fontsource/press-start-2p": "^5.0.0",
+    "@fontsource/space-grotesk": "^5.0.0"
+  }
+}

@@ -8,7 +8,7 @@ function webglOK() {
     return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
   } catch { return false; }
 }
-let prefers2D = location.hash === '#2d';
+let prefers2D = location.hash === '#2d' || window.JAT_ARCADE_CONFIG?.mode === '2d';
 try { prefers2D ||= sessionStorage.getItem('jat-flat') === '1'; } catch { /* storage blocked */ }
 
 window.__jatBooted = true;

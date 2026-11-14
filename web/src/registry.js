@@ -33,5 +33,11 @@ import { JungleRun } from './games/junglerun.js';
 import { Chopper } from './games/chopper.js';
 import { GoldDigger } from './games/golddigger.js';
 import { RockGem } from './games/rockgem.js';
+import { DirtJump } from './games/dirtjump.js';
+import { BlockHopper } from './games/blockhopper.js';
+import { StarLancer } from './games/starlancer.js';
+import { SwordKey } from './games/swordkey.js';
+import { HerosRoad } from './games/herosroad.js';
+import { JewelDrop } from './games/jeweldrop.js';
 
-export const GAMES = { castlequest: CastleQuest, mazemonster: MazeMonster, junglerun: JungleRun, chopper: Chopper, golddigger: GoldDigger, rockgem: RockGem, nightroad: NightRoad, rockfield: RockField, moonlander: MoonLander, cityshield: CityShield, gardenpest: GardenPest, hopacross: HopAcross, turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };
+export const GAMES = { dirtjump: DirtJump, blockhopper: BlockHopper, starlancer: StarLancer, swordkey: SwordKey, herosroad: HerosRoad, jeweldrop: JewelDrop, castlequest: CastleQuest, mazemonster: MazeMonster, junglerun: JungleRun, chopper: Chopper, golddigger: GoldDigger, rockgem: RockGem, nightroad: NightRoad, rockfield: RockField, moonlander: MoonLander, cityshield: CityShield, gardenpest: GardenPest, hopacross: HopAcross, turochamp: PaperMachine, draughts: Draughts, pool: Pool, sumer: Sumer, chase: Chase, empire: Conquest, nimrod: Nimrod, bouncingball: BouncingBall, starpatrol: StarPatrol, beast: Beast, dungeon: Dungeon, cavern: Cavern, targetbeam: TargetBeam, bertie: Bertie, oxo: Oxo, tennis: Tennis, spacewar: Spacewar, volley: Volley, starsiege: StarSiege, gemrunner: GemRunner, serpent: Serpent, brickfall: Brickfall };

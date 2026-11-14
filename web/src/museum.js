@@ -10,6 +10,8 @@ import { BUILDERS, labelTexture, buildTapeDrives } from './machines.js';
 import { Sfx } from './sfx.js';
 import { GAMES } from './registry.js';
 import { startFlat } from './flat.js';
+import { initVisitor } from './visitor.js';
+import { NO_INPUT } from './games/base.js';
 
 const $ = (s) => document.querySelector(s);
 const isTouch = matchMedia('(pointer: coarse)').matches;
@@ -192,6 +194,8 @@ const WING4 = { x0: -HALL.x, x1: -HALL.x + 16, z0: -HALL.z - 16, z1: -HALL.z };
 const NORTH_DOOR_X = -7;
 const WING5 = { x0: -HALL.x + 16, x1: -HALL.x + 32, z0: -HALL.z - 16, z1: -HALL.z };
 const NORTH_DOOR2_X = 7;
+const SOUTH_DOOR_X = 12.8;
+const WING6 = { x0: SOUTH_DOOR_X - 8, x1: SOUTH_DOOR_X + 8, z0: HALL.z, z1: HALL.z + 16 };
 // Where the visitor may stand: each room shrunk by a margin, plus the doorway between them.
 const WALKABLE = [
   { x0: -HALL.x + 0.35, x1: HALL.x - 0.35, z0: -HALL.z + 0.35, z1: HALL.z - 0.35 },
@@ -203,12 +207,14 @@ const WALKABLE = [
   { x0: NORTH_DOOR_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
   { x0: WING5.x0 + 0.35, x1: WING5.x1 - 0.35, z0: WING5.z0 + 0.35, z1: WING5.z1 - 0.35 },
   { x0: NORTH_DOOR2_X - DOOR.w / 2 + 0.3, x1: NORTH_DOOR2_X + DOOR.w / 2 - 0.3, z0: -HALL.z - 0.6, z1: -HALL.z + 0.6 },
+  { x0: WING6.x0 + 0.35, x1: WING6.x1 - 0.35, z0: WING6.z0 + 0.35, z1: WING6.z1 - 0.35 },
+  { x0: SOUTH_DOOR_X - DOOR.w / 2 + 0.3, x1: SOUTH_DOOR_X + DOOR.w / 2 - 0.3, z0: HALL.z - 0.6, z1: HALL.z + 0.6 },
 ];
 const walkable = (x, z) => WALKABLE.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 
 let tapeReels = [];
 function buildHall() {
-  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: [NORTH_DOOR_X, NORTH_DOOR2_X] } });
+  buildRoom({ x0: -HALL.x, x1: HALL.x, z0: -HALL.z, z1: HALL.z, floor: new THREE.MeshStandardMaterial({ map: carpetTexture(), roughness: 0.95 }), doors: { east: 0, west: 0, north: [NORTH_DOOR_X, NORTH_DOOR2_X], south: SOUTH_DOOR_X } });
   // title + wing signs
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.15),
     new THREE.MeshBasicMaterial({ map: labelTexture('JAT ARCADE ARCHIVES', { w: 1600, h: 256, bg: 'rgba(0,0,0,0)', glow: '#ff2bd6', fg: '#ffe14d', font: '900 150px "Arial Black", Impact, sans-serif' }), transparent: true, toneMapped: false }));
@@ -238,6 +244,30 @@ function buildHall() {
   for (const [w, h, d, x, y, z] of [[2.2, 0.42, 0.9, 0, 0.21, 0], [2.2, 0.5, 0.2, 0, 0.6, 0.35], [0.2, 0.3, 0.9, -1.0, 0.55, 0], [0.2, 0.3, 0.9, 1.0, 0.55, 0]]) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), fabric); m.position.set(x, y, z); sofa.add(m);
   }
+
+  // ---- wing 6: the 8-bit console era (a late-80s bedroom: blue carpet, posters, a bean bag) ----
+  wallSign('8-BIT CONSOLES  ↓', { glow: '#3b6bff', fg: '#ffffff', w: 3.0, x: SOUTH_DOOR_X, y: 3.25, z: HALL.z - 0.03, ry: Math.PI });
+  const blueCarpet = carpetTexture(); blueCarpet.repeat.set(5, 5);
+  buildRoom({ ...WING6, floor: new THREE.MeshStandardMaterial({ map: blueCarpet, roughness: 0.95, color: 0x8fb0ff }), wall: 0x26306a, ceil: 0x121638, trims: [0xff3b3b, 0xffffff, 0x3b6bff], doors: { north: SOUTH_DOOR_X } });
+  wallSign('THE 8-BIT CONSOLE ERA · 1983–1989', { glow: '#ff3b3b', fg: '#ffffff', w: 6.4, x: SOUTH_DOOR_X, y: 3.25, z: WING6.z1 - 0.03, ry: Math.PI });
+  wallSign('↑  MAIN HALL', { glow: '#ff2bd6', fg: '#ffffff', w: 2.2, x: SOUTH_DOOR_X, y: 3.25, z: WING6.z0 + 0.03, ry: 0 });
+  // posters: original designs, plain shapes and words
+  const poster = (text, bg, fg, x, z, ry) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.25), new THREE.MeshStandardMaterial({ map: labelTexture(text, { w: 360, h: 500, bg, fg, glow: fg, font: '900 64px "Arial Black", Impact, sans-serif' }), roughness: 0.8 }));
+    m.position.set(x, 1.9, z); m.rotation.y = ry; scene.add(m);
+  };
+  poster('1UP', '#ff3b3b', '#ffffff', WING6.x0 + 0.03, 13.8, Math.PI / 2);
+  poster('PRESS START', '#2a5ad8', '#ffe14d', WING6.x1 - 0.03, 13.8, -Math.PI / 2);
+  poster('GAME OVER?', '#111111', '#7cff6b', 12.8, WING6.z1 - 0.03, Math.PI);
+  // a bean bag and a shelf of cartridge boxes
+  const bag = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 16), new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.9 }));
+  bag.scale.set(1, 0.55, 1); bag.position.set(12.8, 0.3, 15.5); scene.add(bag);
+  const shelf = new THREE.Group(); shelf.position.set(12.8, 0, 17.2); scene.add(shelf);
+  const plank = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 0.3), new THREE.MeshStandardMaterial({ map: woodFloorTexture(), roughness: 0.6 }));
+  plank.position.set(0, 0.45, 0); shelf.add(plank);
+  const boxCols = [0xff3b3b, 0xffe14d, 0x2a5ad8, 0x7cff6b, 0xb46cff, 0xff8c1a, 0xffffff, 0x2ac0a0];
+  boxCols.forEach((col, i) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 0.18), new THREE.MeshStandardMaterial({ color: col, roughness: 0.6 })); b.position.set(-0.6 + i * 0.165, 0.58, 0); b.rotation.z = i === 7 ? 0.25 : 0; shelf.add(b); });
+  for (const x of [-0.65, 0.65]) { const side = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.3), new THREE.MeshStandardMaterial({ color: 0x5a3a20 })); side.position.set(x, 0.225, 0); shelf.add(side); }
 
   // ---- wing 3: experiments & prototypes (a wood-panelled research lab) ----
   const parquet = woodFloorTexture(); parquet.repeat.set(8, 7);
@@ -338,8 +368,9 @@ const ROOM_POINTS = {
   experiments: [[-17.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-22.5, HALL.h - 0.8, 0, 0xffd8a0, 5], [-27.5, HALL.h - 0.8, 0, 0xffd8a0, 5]],
   arcade: [[-10, 3.4, -12, 0xff5252, 6], [-4, 3.4, -18, 0x4cc9f0, 6], [-6.5, 3.4, -15, 0xffeb3b, 3]],
   home: [[5, 3.4, -12, 0xffd8a0, 6], [12, 3.4, -18, 0xffb070, 6], [9.5, 3.4, -15, 0xffe7c0, 3]],
+  console: [[8.5, 3.4, 13, 0xffa0a0, 7], [17, 3.4, 13, 0xa8c0ff, 7], [12.8, 3.4, 19, 0xffffff, 6]],
 };
-const SPOT_POOL = Math.max(...['hall', 'mainframe', 'experiments', 'arcade', 'home'].map(r => exhibits.filter(e => e.room === r).length));
+const SPOT_POOL = Math.max(...Object.keys(ROOM_POINTS).map(r => exhibits.filter(e => e.room === r).length));
 const spots = Array.from({ length: SPOT_POOL }, () => { const sp = new THREE.SpotLight(0xfff1dd, 0, 9, 0.5, 0.65, 1.4); scene.add(sp, sp.target); return sp; });
 const points = Array.from({ length: 3 }, () => { const p = new THREE.PointLight(0xffffff, 0, 12, 1.6); scene.add(p); return p; });
 let litRoom = null;
@@ -355,7 +386,7 @@ function lightRoom(room) {
   });
   points.forEach((p, k) => { const [x, y, z, c, i] = ROOM_POINTS[room][k]; p.position.set(x, y, z); p.color.set(c); p.intensity = i; });
 }
-function roomOf(x, z = 0) { return z < -HALL.z ? (x > WING4.x1 ? 'home' : 'arcade') : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
+function roomOf(x, z = 0) { return z > HALL.z ? 'console' : z < -HALL.z ? (x > WING4.x1 ? 'home' : 'arcade') : x > HALL.x ? 'mainframe' : x < -HALL.x ? 'experiments' : 'hall'; }
 
 // ---------- UI --------------------------------------------------------------------------------
 const focusEl = $('#focus');
@@ -363,6 +394,20 @@ let focused = -1;
 let active = -1;          // index of the exhibit being played
 let tween = null;         // camera transition
 const walkPose = { pos: new THREE.Vector3(), quat: new THREE.Quaternion() };
+
+// high scores, passport, machine of the day and the guided tour (shared with 2D mode)
+const idxOf = (ex) => exhibits.findIndex(e => e.id === ex.id);
+const arrived = () => new Promise((res) => { const t = setInterval(() => { if (!tween) { clearInterval(t); res(); } }, 100); });
+const vbar = document.createElement('div'); vbar.style.display = 'contents'; $('#top').insertBefore(vbar, $('#sound'));
+const visitor = initVisitor({
+  sfx, toolbar: vbar,
+  host: {
+    async go(ex) { const i = idxOf(ex); if (i < 0) return; closePlaque(); toggleMenu(false); if (active >= 0) standUp(true); goTo(i); await arrived(); },
+    async play(ex) { const i = idxOf(ex); if (i < 0) return; await arrived(); sitDown(i); },
+    isPlaying: () => active >= 0,
+    onScoresChanged: () => { const f = focused; focused = -2; showFocus(f); },
+  },
+});
 
 const menu = $('#menu');
 [...EXHIBITS.entries()].sort((a, b) => a[1].year - b[1].year).forEach(([i, ex]) => {
@@ -372,6 +417,7 @@ const menu = $('#menu');
   b.querySelector('strong').textContent = ex.title;
   b.querySelector('small').textContent = ex.short;
   b.addEventListener('click', () => { goTo(i); toggleMenu(false); });
+  visitor.markItem(b, ex);
   menu.appendChild(b);
 });
 function toggleMenu(open = !menu.classList.contains('open')) {
@@ -393,6 +439,8 @@ function showFocus(i) {
   focusEl.querySelector('.yr').textContent = ex.year;
   focusEl.querySelector('h2').textContent = ex.title;
   focusEl.querySelector('p').textContent = ex.short;
+  const line = focusEl.querySelector('.v-board-line'); line.textContent = '';
+  visitor.boardLine(ex).then((t) => { if (focused === i) line.textContent = t; });
   focusEl.classList.add('show');
 }
 $('#playBtn').addEventListener('click', () => focused >= 0 && sitDown(focused));
@@ -408,6 +456,7 @@ function openPlaque(i) {
   plaqueEl.querySelector('.how').textContent = ex.play;
   plaqueEl.querySelector('.note').textContent = ex.recon ? RECON_NOTE : NOTE;
   plaqueEl.classList.add('open');
+  visitor.passport.readPlaque(ex.id);
   $('#plaqueClose').focus();
 }
 function closePlaque() { plaqueEl.classList.remove('open'); }
@@ -435,7 +484,7 @@ function goTo(i) {
   const yaw = Math.atan2(-(ex.pos[0] - spot.x), -(ex.pos[2] - spot.z));
   const target = { pos: spot, quat: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.18, yaw, 0, 'YXZ')) };
   startTween(target, () => { player.pos.copy(spot); player.yaw = yaw; player.pitch = -0.18; });
-  history.replaceState(null, '', '#' + ex.id);
+  history.replaceState(null, '', location.pathname + location.search + '#' + ex.id); // absolute: the WordPress embed sets a <base>
 }
 
 function playPose(i) {
@@ -571,7 +620,7 @@ function pollGamepad() {
   const s = { up: b(12) || ay < -0.5, down: b(13) || ay > 0.5, left: b(14) || ax < -0.5, right: b(15) || ax > 0.5, a: b(0), back: b(1), start: b(9), ax, ay, lx: Math.abs(gp.axes[2] || 0) > 0.2 ? gp.axes[2] : 0, ly: Math.abs(gp.axes[3] || 0) > 0.2 ? gp.axes[3] : 0 };
   for (const k of ['up', 'down', 'left', 'right', 'a']) if (s[k] && !padPrev[k]) taps.add(k);
   if (s.back && !padPrev.back && active >= 0) standUp();
-  if ((s.a || s.start) && !padPrev.a && !padPrev.start && active < 0 && focused >= 0) { padPrev = s; taps.clear(); sitDown(focused); return s; }
+  if ((s.a || s.start) && !padPrev.a && !padPrev.start && active < 0 && focused >= 0 && !visitor.busy) { padPrev = s; taps.clear(); sitDown(focused); return s; }
   padPrev = s;
   return s;
 }
@@ -588,6 +637,10 @@ function gameInput(gp) {
 const colliders = exhibits.flatMap(ex => [
   { x: ex.pos[0], z: ex.pos[2], r: ex.radius + 0.25 },
   { x: ex.lectern.x, z: ex.lectern.z, r: 0.35 },
+]).concat([
+  { x: 9.5, z: -14.5, r: 1.1 },   // the sofa in the home wing
+  { x: 12.8, z: 15.5, r: 0.6 },   // bean bag
+  { x: 12.8, z: 17.2, r: 0.75 },  // cartridge shelf
 ]);
 function walk(dt, gp) {
   let f = 0, s = 0;
@@ -662,7 +715,7 @@ function frame() {
   const modal = plaqueEl.classList.contains('open');
 
   if (tween) stepTween(dt);
-  else if (active < 0 && !modal) walk(dt, gp);
+  else if (active < 0 && !modal && !visitor.busy) walk(dt, gp);
   const camRoom = roomOf(camera.position.x, camera.position.z);
   lightRoom(camRoom);
 
@@ -683,7 +736,7 @@ function frame() {
     }
     const step = playing ? dt : ex.frameAcc;
     ex.frameAcc = 0;
-    ex.game.step(step, playing ? gameInput(gp) : null);
+    ex.game.step(step, playing ? (visitor.busy ? NO_INPUT : gameInput(gp)) : null);
     ex.screen.userData.texture.needsUpdate = true;
     ex.screen.material.uniforms.time.value = elapsed;
   });
@@ -722,7 +775,7 @@ document.addEventListener('visibilitychange', () => { setRunning(!document.hidde
 
 // if the GPU drops the context, switch to 2D instead of showing a frozen frame
 canvas.addEventListener('webglcontextlost', (e) => {
-  e.preventDefault(); setRunning(false); app.hidden = true;
+  e.preventDefault(); setRunning(false); app.hidden = true; visitor.destroy();
   document.body.classList.remove('playing', 'zoomed');
   for (const el of ['#top', '#menu', '#focus', '#playbar', '#stick', '#pad', '#settings']) $(el)?.remove();
   startFlat({ reason: 'context-lost', sfx });
@@ -768,9 +821,9 @@ enter.addEventListener('click', () => {
 enter.focus();
 
 // debugging / embedding hook (the WordPress plugin can drive the museum through this)
-window.JATArcade = { mode: '3d', exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
+window.JATArcade = { mode: '3d', visitor, exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
 
 // PWA: register the service worker when the page is served from its own origin
-if ('serviceWorker' in navigator && window.top === window.self) {
+if ('serviceWorker' in navigator && window.top === window.self && !window.JAT_ARCADE_CONFIG) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }

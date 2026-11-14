@@ -1,8 +1,8 @@
 // Offline cache for the PWA build. Bump VERSION whenever files change.
-const VERSION = 'jat-arcade-v8';
+const VERSION = 'jat-arcade-v10';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icons/icon.svg',
-  './src/main.js', './src/museum.js', './src/flat.js', './src/registry.js', './src/machines.js', './src/crt.js', './src/sfx.js', './src/exhibits.js',
+  './src/main.js', './src/museum.js', './src/flat.js', './src/visitor.js', './src/registry.js', './src/machines.js', './src/crt.js', './src/sfx.js', './src/exhibits.js',
   './src/games/base.js', './src/games/volley.js', './src/games/starsiege.js', './src/games/gemrunner.js',
   './src/games/serpent.js', './src/games/brickfall.js', './src/games/ttt.js', './src/games/targetbeam.js',
   './src/games/bertie.js', './src/games/oxo.js', './src/games/tennis.js', './src/games/spacewar.js',
@@ -13,6 +13,8 @@ const SHELL = [
   './src/games/cityshield.js', './src/games/gardenpest.js', './src/games/hopacross.js',
   './src/games/castlequest.js', './src/games/mazemonster.js', './src/games/junglerun.js', './src/games/chopper.js',
   './src/games/golddigger.js', './src/games/rockgem.js',
+  './src/games/dirtjump.js', './src/games/blockhopper.js', './src/games/starlancer.js', './src/games/swordkey.js',
+  './src/games/herosroad.js', './src/games/jeweldrop.js',
 ];
 
 self.addEventListener('install', (e) => {

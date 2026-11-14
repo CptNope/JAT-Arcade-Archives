@@ -772,7 +772,65 @@ export function buildPocketMicro(game) {
   return { group: g, screen, radius: 0.75 };
 }
 
+// ---------- the 8-bit console era (1983–1989) ------------------------------------------------------
+
+// a CRT TV on a low wooden cabinet, a boxy cartridge console on the shelf and two rectangular pads on cords
+export function buildConsole8(game, { body = 0x3a3a40, accent = 0xd62828, lid = 0x1e1e22, disk = false, tv = 0x2b2b2b, bright = 1.4 } = {}) {
+  const g = new THREE.Group();
+  const wood = std(0xffffff, { map: woodTexture('#5a3a20'), roughness: 0.55 });
+  add(g, box(1.15, 0.52, 0.52), wood, 0, 0.26, -0.05);
+  add(g, box(1.05, 0.3, 0.02), std(0x2a1a10), 0, 0.22, 0.215); // shelf opening
+  const screen = portableTV(g, game, 0, 0.52, -0.06, { color: tv, width: 0.48, bright });
+  // the console: a flat box with a coloured stripe and a cartridge slot
+  const con = new THREE.Group(); con.position.set(-0.12, 0.52, 0.27); g.add(con);
+  add(con, rbox(0.34, 0.07, 0.22, 0.012), std(body, { roughness: 0.5 }), 0, 0.035, 0);
+  add(con, box(0.2, 0.012, 0.12), std(lid, { roughness: 0.4 }), -0.03, 0.074, -0.02);
+  add(con, box(0.34, 0.01, 0.005), std(accent, { roughness: 0.4 }), 0, 0.03, 0.111);
+  add(con, box(0.07, 0.04, 0.025), std(0x6a4a2a), -0.03, 0.09, -0.02); // a cartridge in the slot
+  for (const x of [0.1, 0.14]) add(con, box(0.025, 0.008, 0.012), std(0x1a1a1a), x, 0.074, 0.06); // power / reset
+  add(con, cyl(0.005, 0.005, 0.004), new THREE.MeshBasicMaterial({ color: 0xff2020, toneMapped: false }), 0.12, 0.074, 0.09);
+  if (disk) { // a disk drive add-on beside the console
+    add(g, rbox(0.2, 0.1, 0.24, 0.01), std(0x8a1a1a, { roughness: 0.5 }), 0.24, 0.57, 0.27);
+    add(g, box(0.14, 0.008, 0.004), std(0x111111), 0.24, 0.6, 0.391);
+  }
+  // two pads with cords
+  const cordMat = std(0x111111, { roughness: 0.8 });
+  [[-0.42, 0.42, 0.25], [0.36, 0.44, -0.3]].forEach(([x, z, r]) => {
+    const pad = new THREE.Group(); pad.position.set(x, 0.53, z); pad.rotation.y = r; g.add(pad);
+    add(pad, rbox(0.15, 0.02, 0.065, 0.006), std(body, { roughness: 0.5 }), 0, 0, 0);
+    add(pad, box(0.035, 0.006, 0.012), std(0x111111), -0.045, 0.012, 0);
+    add(pad, box(0.012, 0.006, 0.035), std(0x111111), -0.045, 0.012, 0);
+    for (const bx of [0.035, 0.06]) { const b = add(pad, cyl(0.009, 0.009, 0.008), std(accent), bx, 0.012, 0.004); b.rotation.x = 0; }
+    const cord = new THREE.CatmullRomCurve3([new THREE.Vector3(x, 0.53, z - 0.03), new THREE.Vector3(x * 0.6, 0.525, z - 0.02), new THREE.Vector3(-0.12, 0.54, 0.38)]);
+    add(g, new THREE.TubeGeometry(cord, 14, 0.004, 5), cordMat);
+  });
+  return { group: g, screen, radius: 0.72 };
+}
+
+// a landscape pocket console with a four-shade LCD, on a lit plinth
+export function buildPocketBrick(game) {
+  const g = new THREE.Group();
+  add(g, box(0.55, 0.95, 0.55), std(0x1a1630, { roughness: 0.7 }), 0, 0.475, 0);
+  add(g, box(0.57, 0.02, 0.57), std(0xb46cff, { emissive: 0xb46cff, emissiveIntensity: 0.6 }), 0, 0.96, 0);
+  const dev = new THREE.Group(); dev.position.set(0, 1.17, 0.02); dev.rotation.x = -0.32; g.add(dev);
+  add(g, box(0.3, 0.12, 0.02), new THREE.MeshStandardMaterial({ color: 0xe0d0ff, transparent: true, opacity: 0.25, roughness: 0.1 }), 0, 1.02, -0.04).rotation.x = -0.3;
+  add(dev, rbox(0.6, 0.34, 0.07, 0.06), std(0xe9e2cf, { roughness: 0.5 }), 0, 0, 0);
+  add(dev, rbox(0.26, 0.26, 0.02, 0.02), std(0x4a4a5a, { roughness: 0.4 }), 0, 0.01, 0.035);
+  const screen = createScreen(game, 0.2, { lcd: true });
+  screen.position.set(0, 0.01, 0.046); dev.add(screen);
+  add(dev, box(0.08, 0.026, 0.02), std(0x2a2a30), -0.21, 0, 0.04);
+  add(dev, box(0.026, 0.08, 0.02), std(0x2a2a30), -0.21, 0, 0.04);
+  for (const [x, y] of [[0.19, -0.03], [0.24, 0.02]]) { const b = add(dev, cyl(0.022, 0.022, 0.02), std(0x8a3aa8, { roughness: 0.3 }), x, y, 0.04); b.rotation.x = Math.PI / 2; }
+  for (let i = 0; i < 5; i++) add(dev, box(0.004, 0.05, 0.004), std(0x9a947f), 0.2 + i * 0.012, -0.11, 0.036); // speaker slots
+  return { group: g, screen, radius: 0.5 };
+}
+
 export const BUILDERS = {
+  console8: (gm) => buildConsole8(gm),
+  console8Grey: (gm) => buildConsole8(gm, { body: 0xb8b8bc, accent: 0x2a5ad8, lid: 0x55555c, tv: 0x6a5a48 }),
+  console8White: (gm) => buildConsole8(gm, { body: 0xeae6dc, accent: 0x8a1a2a, lid: 0xb03040, disk: true, tv: 0x3a3a3a, bright: 1.2 }),
+  console8Black: (gm) => buildConsole8(gm, { body: 0x1c1c22, accent: 0x2ac0a0, lid: 0x3a3a44, tv: 0x8a8a8a }),
+  pocketBrick: buildPocketBrick,
   homeConsole: buildHomeConsole, pocketMicro: buildPocketMicro,
   microBeige: (gm) => buildComputer(gm, { body: 0xd8cdb0, kbColor: 0xc9bd9e, keyColor: 0x3b3329 }),
   microSilver: (gm) => buildComputer(gm, { body: 0xb9b5ac, kbColor: 0x4a3a2a, keyColor: 0x2a2018 }),
