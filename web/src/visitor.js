@@ -26,6 +26,7 @@ export class Scores {
   constructor(cfg = globalThis.JAT_ARCADE_CONFIG || {}) {
     this.url = cfg.scoresUrl || null;
     this.nonce = cfg.nonce || null;
+    this.canSubmit = cfg.canSubmit !== false;
     this.cache = new Map();
   }
   key(id, period) { return period === 'daily' ? `jat-board:${today()}:${id}` : `jat-board:${id}`; }
@@ -50,19 +51,22 @@ export class Scores {
     const b = this.local(id, period); this.cache.set(ck, b); return b;
   }
   qualifies(board, score) { return score > 0 && (board.length < BOARD_SIZE || score > board[board.length - 1].score); }
+  // returns null when saved, or a message to show the visitor
   async submit(id, score, initials) {
     const entry = { initials, score, date: new Date().toISOString() };
     this.insertLocal(id, 'all', entry); this.insertLocal(id, 'daily', entry);
-    if (this.url) {
-      try {
-        await fetch(new URL(this.url, location.href), {
-          method: 'POST', credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json', ...(this.nonce ? { 'X-WP-Nonce': this.nonce } : {}) },
-          body: JSON.stringify({ game: id, score, initials }),
-        });
-      } catch { /* kept locally */ }
-    }
     this.cache.clear();
+    if (!this.url || !this.canSubmit) return null;
+    try {
+      const r = await fetch(new URL(this.url, location.href), {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', ...(this.nonce ? { 'X-WP-Nonce': this.nonce } : {}) },
+        body: JSON.stringify({ game: id, score, initials }),
+      });
+      if (r.ok) return null;
+      const j = await r.json().catch(() => ({}));
+      return j.message || 'The site could not save this score.';
+    } catch { return 'Offline: the score was kept in this browser.'; }
   }
 }
 
@@ -184,7 +188,9 @@ const CSS = `
 #v-tour .ctl .btn { padding:.45em .75em; }
 body.playing #v-tour { display:none; }
 body.flat-mode #v-tour { top:auto; bottom:calc(12px + var(--sab,0px)); }
-@media (max-width: 600px) { .lbl { display:none; } #brand { display:none; } }
+#top .btn { white-space:nowrap; }
+@media (max-width: 760px) { #brand { display:none; } }
+@media (max-width: 600px) { .lbl { display:none; } }
 @media (max-height: 460px) { #v-tour { top:calc(8px + var(--sat,0px)); } #v-tour .cap { max-height:3em; font-size:12px; } }
 .v-board-line { font-size:12px; color:#ffe14d; margin:-4px 0 8px; min-height:1em; font-family:'Press Start 2P', monospace; }
 .v-mark { color:#ff2bd6; margin-left:6px; } .v-star { color:#ffe14d; margin-left:6px; }
@@ -279,16 +285,18 @@ export function initVisitor({ host, sfx, toolbar }) {
     if (!p || !save) return;
     const name = letters.join('').trim() || 'AAA';
     passport.d.name = name; passport.save();
-    await scores.submit(p.id, p.score, name);
+    const problem = await scores.submit(p.id, p.score, name);
     const board = await scores.get(p.id, 'all');
     if (board[0] && board[0].score <= p.score && board[0].initials === name) passport.award('top');
-    toast('🏆', `${name} · ${fmt(p.score)}`, `Saved to the ${p.title} board.`);
+    if (problem) toast('⚠️', `${name} · ${fmt(p.score)}`, problem, 6000);
+    else toast('🏆', `${name} · ${fmt(p.score)}`, `Saved to the ${p.title} board.`);
     host.onScoresChanged?.();
   }
   async function askInitials(ex, score) {
     const board = await scores.get(ex.id, 'all');
     const daily = await scores.get(ex.id, 'daily');
     if (!scores.qualifies(board, score) && !scores.qualifies(daily, score)) return;
+    if (scores.url && !scores.canSubmit) { toast('🔒', `${fmt(score)} points`, 'Log in to put your score on this site\'s boards.', 5000); return; }
     pending = { id: ex.id, score, title: ex.title };
     const rank = board.filter(b => b.score >= score).length + 1;
     ini.card.querySelector('h2').textContent = `${ex.title}: ${fmt(score)}`;

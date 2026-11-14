@@ -455,7 +455,7 @@ function goTo(i) {
   const yaw = Math.atan2(-(ex.pos[0] - spot.x), -(ex.pos[2] - spot.z));
   const target = { pos: spot, quat: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.18, yaw, 0, 'YXZ')) };
   startTween(target, () => { player.pos.copy(spot); player.yaw = yaw; player.pitch = -0.18; });
-  history.replaceState(null, '', '#' + ex.id);
+  history.replaceState(null, '', location.pathname + location.search + '#' + ex.id); // absolute: the WordPress embed sets a <base>
 }
 
 function playPose(i) {
@@ -791,6 +791,6 @@ enter.focus();
 window.JATArcade = { mode: '3d', visitor, exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
 
 // PWA: register the service worker when the page is served from its own origin
-if ('serviceWorker' in navigator && window.top === window.self) {
+if ('serviceWorker' in navigator && window.top === window.self && !window.JAT_ARCADE_CONFIG) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }

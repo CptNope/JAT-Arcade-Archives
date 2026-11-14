@@ -113,7 +113,8 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     for (const t of [...ex.plaque, ex.play, ex.recon ? RECON_NOTE : NOTE]) { const p = document.createElement('p'); p.textContent = t; about.appendChild(p); }
     about.hidden = true; $('[data-act="about"]').setAttribute('aria-expanded', 'false');
     list.hidden = true; $('.flat-play').hidden = false; root.classList.add('playing');
-    try { history.replaceState(null, '', '#' + ex.id); } catch { /* sandboxed */ }
+    // absolute URL: the WordPress embed sets a <base>
+    try { history.replaceState(null, '', location.pathname + location.search + '#' + ex.id); } catch { /* sandboxed */ }
     fit(); scrollTo(0, 0);
   }
   function close() {

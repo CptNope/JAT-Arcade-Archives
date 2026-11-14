@@ -235,7 +235,7 @@
   setTimeout(function () {
     if (window.__jatBooted) return;
     var l = document.getElementById('loading');
-    if (l && !l.textContent) l.innerHTML = 'Still loading. Check your connection, then <a href="" style="color:#00e5ff">reload</a>.';
+    if (l && !l.textContent) l.innerHTML = 'Still loading. Check your connection, then <a href="#" onclick="location.reload();return false" style="color:#00e5ff">reload</a>.';
   }, 20000);
 </script>
 </body>
