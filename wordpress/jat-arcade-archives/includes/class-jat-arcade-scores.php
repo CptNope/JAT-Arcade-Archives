@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class JAT_Arcade_Scores {
 
-	const DB_VERSION = '1';
+	const DB_VERSION = '2';
 
 	/**
 	 * Table name with prefix.
@@ -46,6 +46,7 @@ class JAT_Arcade_Scores {
 				KEY created_at (created_at)
 			) {$charset};"
 		);
+		JAT_Arcade_Levels::install_table();
 		update_option( 'jat_arcade_db_version', self::DB_VERSION, false );
 	}
 

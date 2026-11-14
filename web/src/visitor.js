@@ -83,6 +83,7 @@ const ACHIEVEMENTS = [
   { id: 'streak', icon: '🔥', title: 'Regular', text: 'Play the machine of the day three days in a row.' },
   { id: 'tour', icon: '🎧', title: 'Guided', text: 'Finish the guided tour.' },
   { id: 'marathon', icon: '⏱️', title: 'Marathon', text: 'Spend 30 minutes playing.' },
+  { id: 'maker', icon: '🛠️', title: 'Level Designer', text: 'Publish a level from the Maker Lab.' },
 ];
 
 export class Passport {
@@ -195,6 +196,12 @@ body.flat-mode #v-tour { top:auto; bottom:calc(12px + var(--sab,0px)); }
 .v-board-line { font-size:12px; color:#ffe14d; margin:-4px 0 8px; min-height:1em; font-family:'Press Start 2P', monospace; }
 .v-mark { color:#ff2bd6; margin-left:6px; } .v-star { color:#ffe14d; margin-left:6px; }
 @media print { body > :not(.v-print) { display:none !important; } }
+.v-levels { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
+.v-level { background:#0b0820; border:1px solid var(--line); border-radius:12px; padding:8px; display:grid; gap:6px; text-align:left; }
+.v-level:hover, .v-level:focus-within { border-color:var(--cyan); }
+.v-level canvas { width:100%; aspect-ratio:16/10; image-rendering:pixelated; border-radius:6px; background:#1a1650; }
+.v-level b { font-size:14px; } .v-level small { color:var(--muted); }
+.v-row label { display:grid; gap:4px; flex:1; font-size:13px; color:var(--muted); }
 `;
 
 export function initVisitor({ host, sfx, toolbar }) {
@@ -504,6 +511,101 @@ export function initVisitor({ host, sfx, toolbar }) {
     if (!tour.voice) synth?.cancel();
   });
 
+
+  // ---------------- Visitor Gallery (Maker Lab levels) ----------------
+  const cfg = globalThis.JAT_ARCADE_CONFIG || {};
+  const FEATURED = [
+    { title: 'Stairway', initials: 'JAT', code: '0u810d240a310e230a310e230971310d1w' },
+    { title: 'Spike Run', initials: 'JAT', code: '0z0z0t31043103310471095102810113014113014113411i' },
+    { title: 'Bounce House', initials: 'JAT', code: '0z0b810c150n330n710e18611n' },
+  ];
+  const mine = () => LS.get('jat-my-levels', []);
+  const gal = modal('v-gallery', 'Visitor Gallery');
+  gal.card.innerHTML = `<div class="v-row"><h2 style="flex:1;margin:0">🖼 Visitor Gallery</h2><button class="btn" data-act="close" aria-label="Close">✕</button></div>
+    <p class="sub"></p>
+    <div class="v-tabs" role="tablist"><button class="btn" role="tab" data-g="featured">Featured</button><button class="btn" role="tab" data-g="visitors">Visitors</button><button class="btn" role="tab" data-g="mine">My levels</button></div>
+    <div class="v-levels"></div>`;
+  gal.card.querySelector('[data-act="close"]').addEventListener('click', () => close(gal.m));
+  let gtab = 'featured';
+  gal.card.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { gtab = b.dataset.g; renderGallery(); }));
+  function preview(code) {
+    const c = document.createElement('canvas'); c.width = 64; c.height = 40;
+    const g = c.getContext('2d'), cols = { 1: '#7a5a3a', 2: '#b05a3a', 3: '#5ce1ff', 4: '#d0d0e0', 5: '#b05ad8', 6: '#ffd040', 7: '#7cff6b', 8: '#ff2bd6' };
+    let i = 0;
+    for (let k = 0; k < code.length; k += 2) { const v = +code[k], n = parseInt(code[k + 1], 36); for (let j = 0; j < n; j++, i++) if (cols[v]) { g.fillStyle = cols[v]; g.fillRect((i % 16) * 4, ((i / 16) | 0) * 4, 4, 4); } }
+    return c;
+  }
+  async function renderGallery() {
+    gal.card.querySelectorAll('[data-g]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.g === gtab)));
+    const grid = gal.card.querySelector('.v-levels'), sub = gal.card.querySelector('.sub');
+    grid.textContent = '';
+    let list = [];
+    if (gtab === 'featured') { list = FEATURED; sub.textContent = 'Levels made for the museum. Pick one to play it in the Maker Lab.'; }
+    else if (gtab === 'mine') { list = mine(); sub.textContent = 'Levels you published from this browser.'; }
+    else if (!cfg.levelsUrl) { sub.textContent = 'Visitor levels appear here when the museum runs on a site with the JAT Arcade Archives plugin. Your own levels are under My levels.'; }
+    else {
+      sub.textContent = 'Loading levels from other visitors…';
+      try { const r = await fetch(new URL(cfg.levelsUrl, location.href), { credentials: 'same-origin' }); list = r.ok ? await r.json() : []; } catch { list = []; }
+      if (gtab !== 'visitors') return;
+      sub.textContent = list.length ? 'Levels shared by visitors to this site.' : 'No visitor levels yet. Make one in the Maker Lab and publish it!';
+    }
+    if (!list.length && gtab === 'mine') grid.append(el('p', 'sub', 'Nothing yet. Build a level in the Maker Lab and press 📤 Publish.'));
+    for (const lv of list) {
+      const card = el('div', 'v-level');
+      card.append(preview(lv.code), el('b', null, lv.title), el('small', null, `by ${lv.initials}${lv.plays != null ? ` · ${fmt(lv.plays)} plays` : ''}${lv.status === 'pending' ? ' · awaiting approval' : ''}`));
+      const play = el('button', 'btn primary', '▶ Play');
+      play.addEventListener('click', () => { close(gal.m); playLevel(lv); });
+      card.append(play); grid.append(card);
+    }
+  }
+  async function playLevel(lv) {
+    const ex = exById.get('makerlab'); if (!ex) return;
+    try { localStorage.setItem('jat-maker-level', lv.code); } catch { /* storage blocked */ }
+    const game = host.makerGame?.(); game?.loadCode(lv.code);
+    await host.play(ex);
+    // once seated at the Maker Lab, jump straight into play mode
+    for (let k = 0; k < 60; k++) { const g = host.makerGame?.(); if (g && g.mode === 'play') { g.loadCode(lv.code); g.play(); break; } await new Promise(r => setTimeout(r, 100)); }
+    toast('▶', lv.title, `A level by ${lv.initials}. Hold ▼ to look at it in the editor.`);
+    if (lv.id && cfg.levelsUrl && cfg.nonce) fetch(new URL(cfg.levelsUrl.replace(/\/levels.*$/, '/levels/' + lv.id + '/play'), location.href), { method: 'POST', credentials: 'same-origin', headers: { 'X-WP-Nonce': cfg.nonce } }).catch(() => {});
+  }
+  function openGallery(tab) { if (tab) gtab = tab; tour.pause(); renderGallery(); open(gal.m, '[data-act="close"]'); }
+
+  const pub = modal('v-publish', 'Publish your level');
+  pub.card.innerHTML = `<div class="v-row"><h2 style="flex:1;margin:0">📤 Publish your level</h2><button class="btn" data-act="close" aria-label="Close">✕</button></div>
+    <p class="sub"></p>
+    <div class="v-row"><label>Level name<input name="title" maxlength="40" autocomplete="off"></label><label style="flex:0 0 90px">Initials<input name="ini" maxlength="3" autocomplete="off"></label></div>
+    <div class="v-row"><button class="btn primary" data-act="go">Publish</button></div>`;
+  pub.card.querySelector('[data-act="close"]').addEventListener('click', () => close(pub.m));
+  // let people type in the form: only Escape and Enter are handled here
+  pub.m.onKey = (e) => { if (e.code === 'Enter') { pub.card.querySelector('[data-act="go"]').click(); return true; } return false; };
+  pub.card.querySelector('[data-act="go"]').addEventListener('click', async () => {
+    const game = host.makerGame?.(); if (!game) return;
+    const code = game.levelCode();
+    if (!/7/.test(code.replace(/(.)./g, '$1')) || !/8/.test(code.replace(/(.)./g, '$1'))) { toast('⚠️', 'Not ready yet', 'Your level needs a start and a flag.'); return; }
+    const title = (pub.card.querySelector('[name="title"]').value || 'Untitled').trim().slice(0, 40);
+    const initials = (pub.card.querySelector('[name="ini"]').value || passport.d.name || 'AAA').toUpperCase().replace(/[^A-Z0-9 ]/g, '').slice(0, 3) || 'AAA';
+    passport.d.name = initials; passport.save();
+    let status = 'local', problem = null;
+    if (cfg.levelsUrl && cfg.canPublish !== false) {
+      try {
+        const r = await fetch(new URL(cfg.levelsUrl, location.href), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...(cfg.nonce ? { 'X-WP-Nonce': cfg.nonce } : {}) }, body: JSON.stringify({ title, initials, code }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) status = j.status; else problem = j.message || 'The site could not take this level.';
+      } catch { problem = 'Offline: the level was kept in this browser.'; }
+    }
+    const list = mine(); list.unshift({ title, initials, code, status: status === 'pending' ? 'pending' : undefined }); LS.set('jat-my-levels', list.slice(0, 30));
+    close(pub.m);
+    passport.award('maker');
+    if (problem) toast('⚠️', title, problem, 6000);
+    else toast('📤', title, status === 'pending' ? 'Sent! It will appear in the gallery once it is approved.' : status === 'approved' ? 'Published to the Visitor Gallery.' : 'Saved under My levels. Share it with the 🔗 link.');
+  });
+  function openPublish() {
+    const p = pub.card.querySelector('.sub');
+    p.textContent = cfg.levelsUrl ? (cfg.canPublish === false ? 'Log in to publish to this site\'s gallery. Your level will still be saved under My levels.' : cfg.moderated ? 'New levels are checked by the site owner before they appear.' : 'Your level goes straight into the Visitor Gallery.') : 'Your level is saved under My levels in this browser.';
+    pub.card.querySelector('[name="ini"]').value = passport.d.name || '';
+    tour.pause(); open(pub.m, '[name="title"]');
+  }
+
   // ---------------- marks on menus and focus cards ----------------
   const marked = [];
   function markItem(node, ex) { marked.push([node, ex]); paintMark(node, ex); }
@@ -527,7 +629,7 @@ export function initVisitor({ host, sfx, toolbar }) {
   }
 
   return {
-    scores, passport, featured, tour, toast, boardLine, markItem, openPassport,
+    scores, passport, featured, tour, toast, boardLine, markItem, openPassport, openGallery, openPublish,
     get busy() { return !!modalOpen; },
     destroy() { dead = true; tour.stop(); nodes.forEach(n => n.remove()); },
   };

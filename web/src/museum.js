@@ -407,6 +407,7 @@ const visitor = initVisitor({
     async go(ex) { const i = idxOf(ex); if (i < 0) return; closePlaque(); toggleMenu(false); if (active >= 0) standUp(true); goTo(i); await arrived(); },
     async play(ex) { const i = idxOf(ex); if (i < 0) return; await arrived(); sitDown(i); },
     isPlaying: () => active >= 0,
+    makerGame: () => exhibits.find(e => e.id === 'makerlab')?.game,
     onScoresChanged: () => { const f = focused; focused = -2; showFocus(f); },
   },
 });
@@ -549,7 +550,7 @@ function sitDown(i) {
   active = i;
   document.body.classList.add('playing');
   $('#playHelp').textContent = exhibits[i].play + '  ·  Esc to stand up';
-  $('#shareBtn').hidden = !exhibits[i].game.levelCode;
+  for (const b of ['#shareBtn', '#galleryBtn', '#publishBtn']) $(b).hidden = !exhibits[i].game.levelCode;
   showFocus(-1); settings.hidden = true;
   startTween(playPose(i), () => { exhibits[i].game.start(); if (Math.min(innerWidth, innerHeight) < 520) setZoom(true); });
 }
@@ -809,6 +810,8 @@ function setZoom(on) {
 }
 $('#zoomBtn').addEventListener('click', () => setZoom(!zoomOn));
 $('#shareBtn').addEventListener('click', () => { if (active >= 0) shareLevel(exhibits[active].game, visitor.toast); });
+$('#galleryBtn').addEventListener('click', () => visitor.openGallery());
+$('#publishBtn').addEventListener('click', () => visitor.openPublish());
 zoomEl.addEventListener('pointerdown', () => taps.add('a'));
 
 // pause rendering in hidden tabs (saves battery); resume when visible

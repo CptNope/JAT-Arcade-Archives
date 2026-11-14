@@ -81,10 +81,11 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 ## Visitor features
 
 - **High scores:** a top-10 board on every machine (all time and today) with arcade-style initials.
-- **Passport:** a stamp for each machine you play, 15 achievements, and a printable certificate for each finished wing.
+- **Passport:** a stamp for each machine you play, 16 achievements, and a printable certificate for each finished wing.
 - **Machine of the day:** the same featured machine for every visitor, with a streak achievement.
 - **Guided tour:** walks you through every machine in date order, with spoken narration and captions.
 
+- **Visitor Gallery:** from the Maker Lab, 🖼 Gallery plays featured levels, levels from other visitors (on WordPress) and your own; 📤 Publish shares yours. On WordPress, new levels wait for the site owner's approval by default (Settings › JAT Arcade).
 - **Inside the machine:** the 🔍 button pulls a machine's model apart into an exploded view and opens an animated diagram of how its hardware works: raster TV, vector beam, oscilloscope, analog tube, lamp panels, memory dots, teleprinter, character terminal or LCD.
 
 Everything works in 3D and 2D mode. Progress stays in the visitor's browser; scores go to the site when the page sets `window.JAT_ARCADE_CONFIG = { scoresUrl, nonce }` (the WordPress plugin does this).

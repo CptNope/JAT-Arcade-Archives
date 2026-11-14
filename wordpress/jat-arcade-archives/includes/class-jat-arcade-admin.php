@@ -25,6 +25,7 @@ class JAT_Arcade_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
 		add_action( 'admin_init', array( __CLASS__, 'settings' ) );
 		add_action( 'admin_post_jat_arcade_clear_scores', array( __CLASS__, 'clear_scores' ) );
+		add_action( 'admin_post_jat_arcade_moderate_level', array( __CLASS__, 'moderate_level' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( JAT_ARCADE_FILE ), array( __CLASS__, 'action_links' ) );
 	}
 
@@ -88,6 +89,12 @@ class JAT_Arcade_Admin {
 		if ( isset( $in['max_score'] ) ) {
 			$out['max_score'] = max( 1, min( 2000000000, absint( $in['max_score'] ) ) );
 		}
+		if ( isset( $in['levels'] ) && in_array( $in['levels'], array( 'everyone', 'members', 'nobody' ), true ) ) {
+			$out['levels'] = $in['levels'];
+		}
+		if ( isset( $in['moderate'] ) ) {
+			$out['moderate'] = '1' === (string) $in['moderate'];
+		}
 		if ( isset( $in['height'] ) ) {
 			$h             = sanitize_text_field( $in['height'] );
 			$out['height'] = preg_match( '/^\d{2,4}(px|vh|dvh|svh|rem|em)$/', $h ) ? $h : '80vh';
@@ -113,6 +120,43 @@ class JAT_Arcade_Admin {
 		set_transient( 'jat_arcade_cleared_' . get_current_user_id(), $n, MINUTE_IN_SECONDS );
 		wp_safe_redirect( admin_url( 'options-general.php?page=' . self::PAGE ) );
 		exit;
+	}
+
+	/**
+	 * Handle admin-post.php?action=jat_arcade_moderate_level: approve or delete one gallery level.
+	 */
+	public static function moderate_level() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to moderate levels.', 'jat-arcade-archives' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( 'jat_arcade_moderate_level' );
+
+		$id     = isset( $_POST['level'] ) ? absint( wp_unslash( $_POST['level'] ) ) : 0;
+		$action = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
+		if ( $id && in_array( $action, array( 'approve', 'delete' ), true ) ) {
+			JAT_Arcade_Levels::moderate( $id, $action );
+		}
+		wp_safe_redirect( admin_url( 'options-general.php?page=' . self::PAGE . '#jat-gallery' ) );
+		exit;
+	}
+
+	/**
+	 * A small POST form for one moderation action (nonce-protected).
+	 *
+	 * @param int    $id     Level id.
+	 * @param string $action 'approve' or 'delete'.
+	 * @param string $label  Button text.
+	 */
+	private static function level_form( $id, $action, $label ) {
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
+			<input type="hidden" name="action" value="jat_arcade_moderate_level">
+			<input type="hidden" name="level" value="<?php echo esc_attr( $id ); ?>">
+			<input type="hidden" name="do" value="<?php echo esc_attr( $action ); ?>">
+			<?php wp_nonce_field( 'jat_arcade_moderate_level' ); ?>
+			<button type="submit" class="button<?php echo 'delete' === $action ? ' button-link-delete' : ' button-primary'; ?>"><?php echo esc_html( $label ); ?></button>
+		</form>
+		<?php
 	}
 
 	/**
@@ -178,6 +222,22 @@ class JAT_Arcade_Admin {
 						<p class="description"><?php esc_html_e( 'Scores are sent by the visitor\'s browser, so treat the boards as a bit of fun rather than proof.', 'jat-arcade-archives' ); ?></p></td>
 					</tr>
 				</table>
+				<h2><?php esc_html_e( 'Visitor Gallery', 'jat-arcade-archives' ); ?></h2>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="jat-levels"><?php esc_html_e( 'Who can publish Maker Lab levels', 'jat-arcade-archives' ); ?></label></th>
+						<td><select id="jat-levels" name="jat_arcade_settings[levels]">
+							<option value="everyone" <?php selected( $s['levels'], 'everyone' ); ?>><?php esc_html_e( 'Every visitor', 'jat-arcade-archives' ); ?></option>
+							<option value="members" <?php selected( $s['levels'], 'members' ); ?>><?php esc_html_e( 'Logged-in users only', 'jat-arcade-archives' ); ?></option>
+							<option value="nobody" <?php selected( $s['levels'], 'nobody' ); ?>><?php esc_html_e( 'Nobody', 'jat-arcade-archives' ); ?></option>
+						</select></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Approval', 'jat-arcade-archives' ); ?></th>
+						<td><input type="hidden" name="jat_arcade_settings[moderate]" value="0">
+						<label><input type="checkbox" name="jat_arcade_settings[moderate]" value="1" <?php checked( $s['moderate'] ); ?>> <?php esc_html_e( 'New levels wait for my approval before they appear', 'jat-arcade-archives' ); ?></label></td>
+					</tr>
+				</table>
 				<h2><?php esc_html_e( 'Embed', 'jat-arcade-archives' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
@@ -188,6 +248,42 @@ class JAT_Arcade_Admin {
 				</table>
 				<?php submit_button(); ?>
 			</form>
+
+			<h2 id="jat-gallery"><?php esc_html_e( 'Gallery levels', 'jat-arcade-archives' ); ?></h2>
+			<?php
+			foreach ( array(
+				'pending'  => __( 'Waiting for approval', 'jat-arcade-archives' ),
+				'approved' => __( 'In the gallery', 'jat-arcade-archives' ),
+			) as $status => $heading ) :
+				$levels = JAT_Arcade_Levels::by_status( $status );
+				?>
+				<h3><?php echo esc_html( $heading . ' (' . count( $levels ) . ')' ); ?></h3>
+				<?php if ( $levels ) : ?>
+					<table class="widefat striped" style="max-width:820px">
+						<thead><tr><th><?php esc_html_e( 'Title', 'jat-arcade-archives' ); ?></th><th><?php esc_html_e( 'By', 'jat-arcade-archives' ); ?></th><th><?php esc_html_e( 'Plays', 'jat-arcade-archives' ); ?></th><th><?php esc_html_e( 'Try it', 'jat-arcade-archives' ); ?></th><th></th></tr></thead>
+						<tbody>
+						<?php foreach ( $levels as $lv ) : ?>
+							<tr>
+								<td><?php echo esc_html( $lv['title'] ); ?></td>
+								<td><?php echo esc_html( $lv['initials'] ); ?></td>
+								<td><?php echo esc_html( number_format_i18n( (int) $lv['plays'] ) ); ?></td>
+								<td><a href="<?php echo esc_url( JAT_Arcade_Embed::museum_url( '2d' ) . '#maker=' . rawurlencode( $lv['code'] ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Play', 'jat-arcade-archives' ); ?></a></td>
+								<td>
+									<?php
+									if ( 'pending' === $status ) {
+										self::level_form( (int) $lv['id'], 'approve', __( 'Approve', 'jat-arcade-archives' ) );
+									}
+									self::level_form( (int) $lv['id'], 'delete', __( 'Delete', 'jat-arcade-archives' ) );
+									?>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php else : ?>
+					<p><?php esc_html_e( 'None.', 'jat-arcade-archives' ); ?></p>
+				<?php endif; ?>
+			<?php endforeach; ?>
 
 			<h2><?php esc_html_e( 'Stored scores', 'jat-arcade-archives' ); ?></h2>
 			<?php if ( ! $counts ) : ?>
