@@ -10,6 +10,8 @@ import { BUILDERS, labelTexture, buildTapeDrives } from './machines.js';
 import { Sfx } from './sfx.js';
 import { GAMES } from './registry.js';
 import { startFlat } from './flat.js';
+import { initVisitor } from './visitor.js';
+import { NO_INPUT } from './games/base.js';
 
 const $ = (s) => document.querySelector(s);
 const isTouch = matchMedia('(pointer: coarse)').matches;
@@ -364,6 +366,20 @@ let active = -1;          // index of the exhibit being played
 let tween = null;         // camera transition
 const walkPose = { pos: new THREE.Vector3(), quat: new THREE.Quaternion() };
 
+// high scores, passport, machine of the day and the guided tour (shared with 2D mode)
+const idxOf = (ex) => exhibits.findIndex(e => e.id === ex.id);
+const arrived = () => new Promise((res) => { const t = setInterval(() => { if (!tween) { clearInterval(t); res(); } }, 100); });
+const vbar = document.createElement('div'); vbar.style.display = 'contents'; $('#top').insertBefore(vbar, $('#sound'));
+const visitor = initVisitor({
+  sfx, toolbar: vbar,
+  host: {
+    async go(ex) { const i = idxOf(ex); if (i < 0) return; closePlaque(); toggleMenu(false); if (active >= 0) standUp(true); goTo(i); await arrived(); },
+    async play(ex) { const i = idxOf(ex); if (i < 0) return; await arrived(); sitDown(i); },
+    isPlaying: () => active >= 0,
+    onScoresChanged: () => { const f = focused; focused = -2; showFocus(f); },
+  },
+});
+
 const menu = $('#menu');
 [...EXHIBITS.entries()].sort((a, b) => a[1].year - b[1].year).forEach(([i, ex]) => {
   const b = document.createElement('button');
@@ -372,6 +388,7 @@ const menu = $('#menu');
   b.querySelector('strong').textContent = ex.title;
   b.querySelector('small').textContent = ex.short;
   b.addEventListener('click', () => { goTo(i); toggleMenu(false); });
+  visitor.markItem(b, ex);
   menu.appendChild(b);
 });
 function toggleMenu(open = !menu.classList.contains('open')) {
@@ -393,6 +410,8 @@ function showFocus(i) {
   focusEl.querySelector('.yr').textContent = ex.year;
   focusEl.querySelector('h2').textContent = ex.title;
   focusEl.querySelector('p').textContent = ex.short;
+  const line = focusEl.querySelector('.v-board-line'); line.textContent = '';
+  visitor.boardLine(ex).then((t) => { if (focused === i) line.textContent = t; });
   focusEl.classList.add('show');
 }
 $('#playBtn').addEventListener('click', () => focused >= 0 && sitDown(focused));
@@ -408,6 +427,7 @@ function openPlaque(i) {
   plaqueEl.querySelector('.how').textContent = ex.play;
   plaqueEl.querySelector('.note').textContent = ex.recon ? RECON_NOTE : NOTE;
   plaqueEl.classList.add('open');
+  visitor.passport.readPlaque(ex.id);
   $('#plaqueClose').focus();
 }
 function closePlaque() { plaqueEl.classList.remove('open'); }
@@ -571,7 +591,7 @@ function pollGamepad() {
   const s = { up: b(12) || ay < -0.5, down: b(13) || ay > 0.5, left: b(14) || ax < -0.5, right: b(15) || ax > 0.5, a: b(0), back: b(1), start: b(9), ax, ay, lx: Math.abs(gp.axes[2] || 0) > 0.2 ? gp.axes[2] : 0, ly: Math.abs(gp.axes[3] || 0) > 0.2 ? gp.axes[3] : 0 };
   for (const k of ['up', 'down', 'left', 'right', 'a']) if (s[k] && !padPrev[k]) taps.add(k);
   if (s.back && !padPrev.back && active >= 0) standUp();
-  if ((s.a || s.start) && !padPrev.a && !padPrev.start && active < 0 && focused >= 0) { padPrev = s; taps.clear(); sitDown(focused); return s; }
+  if ((s.a || s.start) && !padPrev.a && !padPrev.start && active < 0 && focused >= 0 && !visitor.busy) { padPrev = s; taps.clear(); sitDown(focused); return s; }
   padPrev = s;
   return s;
 }
@@ -662,7 +682,7 @@ function frame() {
   const modal = plaqueEl.classList.contains('open');
 
   if (tween) stepTween(dt);
-  else if (active < 0 && !modal) walk(dt, gp);
+  else if (active < 0 && !modal && !visitor.busy) walk(dt, gp);
   const camRoom = roomOf(camera.position.x, camera.position.z);
   lightRoom(camRoom);
 
@@ -683,7 +703,7 @@ function frame() {
     }
     const step = playing ? dt : ex.frameAcc;
     ex.frameAcc = 0;
-    ex.game.step(step, playing ? gameInput(gp) : null);
+    ex.game.step(step, playing ? (visitor.busy ? NO_INPUT : gameInput(gp)) : null);
     ex.screen.userData.texture.needsUpdate = true;
     ex.screen.material.uniforms.time.value = elapsed;
   });
@@ -722,7 +742,7 @@ document.addEventListener('visibilitychange', () => { setRunning(!document.hidde
 
 // if the GPU drops the context, switch to 2D instead of showing a frozen frame
 canvas.addEventListener('webglcontextlost', (e) => {
-  e.preventDefault(); setRunning(false); app.hidden = true;
+  e.preventDefault(); setRunning(false); app.hidden = true; visitor.destroy();
   document.body.classList.remove('playing', 'zoomed');
   for (const el of ['#top', '#menu', '#focus', '#playbar', '#stick', '#pad', '#settings']) $(el)?.remove();
   startFlat({ reason: 'context-lost', sfx });
@@ -768,7 +788,7 @@ enter.addEventListener('click', () => {
 enter.focus();
 
 // debugging / embedding hook (the WordPress plugin can drive the museum through this)
-window.JATArcade = { mode: '3d', exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
+window.JATArcade = { mode: '3d', visitor, exhibits, goTo, sitDown, standUp, camera, scene, renderer, player, setQuality, setZoom, get busy() { return !!tween; }, get dprScale() { return dprScale; } };
 
 // PWA: register the service worker when the page is served from its own origin
 if ('serviceWorker' in navigator && window.top === window.self) {

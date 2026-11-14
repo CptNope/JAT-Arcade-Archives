@@ -3,6 +3,8 @@
 import { EXHIBITS, WINGS, NOTE, RECON_NOTE } from './exhibits.js';
 import { GAMES } from './registry.js';
 import { Sfx } from './sfx.js';
+import { initVisitor } from './visitor.js';
+import { NO_INPUT } from './games/base.js';
 
 const KEYMAP = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
@@ -63,6 +65,18 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     sfx.muted = !sfx.muted; e.currentTarget.textContent = sfx.muted ? '🔇' : '🔊'; e.currentTarget.setAttribute('aria-pressed', String(!sfx.muted));
   });
 
+  // high scores, passport, machine of the day and the guided tour
+  const vbar = document.createElement('div'); vbar.style.display = 'contents';
+  $('.flat-head').insertBefore(vbar, $('[data-act="sound"]'));
+  const visitor = initVisitor({
+    sfx, toolbar: vbar,
+    host: {
+      go: async (ex) => { open(ex); },
+      play: async (ex) => { open(ex); game.start(); },
+      isPlaying: () => !!game && game.mode !== 'attract',
+    },
+  });
+
   // ---- the list, grouped by wing ----
   const games = new Map();
   const list = $('.flat-list');
@@ -79,6 +93,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
       b.querySelector('strong').textContent = ex.title;
       b.querySelector('small').textContent = ex.short;
       b.addEventListener('click', () => open(ex));
+      visitor.markItem(b, ex);
       grid.appendChild(b);
     }
     sec.appendChild(grid); list.appendChild(sec);
@@ -109,6 +124,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
   $('[data-act="back"]').addEventListener('click', close);
   $('[data-act="about"]').addEventListener('click', (e) => {
     const about = $('.flat-about'); about.hidden = !about.hidden;
+    if (!about.hidden && current) visitor.passport.readPlaque(current.id);
     e.currentTarget.setAttribute('aria-expanded', String(!about.hidden)); fit();
   });
 
@@ -162,7 +178,10 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.1); last = now;
     const gp = gamepad();
-    if (game && !document.hidden) {
+    if (game && !document.hidden && visitor.busy) {
+      game.step(dt, NO_INPUT);
+      ctx.drawImage(game.canvas, 0, 0, screen.width, screen.height);
+    } else if (game && !document.hidden) {
       const h = (k) => held.has(k) || padHeld.has(k) || !!gp[k];
       game.step(dt, { up: h('up'), down: h('down'), left: h('left'), right: h('right'), a: h('a'),
         tap: { a: taps.has('a'), up: taps.has('up'), down: taps.has('down'), left: taps.has('left'), right: taps.has('right') } });
@@ -178,5 +197,5 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
   const id = location.hash.slice(1);
   const ex = EXHIBITS.find(e => e.id === id);
   if (ex) open(ex);
-  window.JATArcade = { mode: '2d', open: (id2) => { const e = EXHIBITS.find(x => x.id === id2); if (e) open(e); }, close, games };
+  window.JATArcade = { mode: '2d', visitor, open: (id2) => { const e = EXHIBITS.find(x => x.id === id2); if (e) open(e); }, close, games };
 }
