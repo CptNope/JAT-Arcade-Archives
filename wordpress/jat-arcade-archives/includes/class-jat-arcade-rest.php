@@ -171,7 +171,7 @@ class JAT_Arcade_Rest {
 	 *
 	 * @return string
 	 */
-	private static function client_ip() {
+	public static function client_ip() {
 		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 	}
 }
