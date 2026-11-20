@@ -99,7 +99,9 @@ npm install
 npm run build:plugin      # -> dist/jat-arcade-archives.zip
 ```
 
-The build copies the museum in and bundles three.js (only the add-ons used) and the fonts locally, since WordPress.org plugins can't load code or fonts from a CDN. GitHub Actions builds the zip on every push and attaches it to `v*` releases.
+For itch.io, `npm run build:itch` makes `dist/jat-arcade-archives-itch.zip`: an HTML5 game with `index.html` at the root and nothing loaded from a CDN, ready to upload as a "played in the browser" file.
+
+The plugin build copies the museum in and bundles three.js (only the add-ons used) and the fonts locally, since WordPress.org plugins can't load code or fonts from a CDN. GitHub Actions builds the zip on every push and attaches it to `v*` releases.
 
 - **Block** "JAT Arcade Archives" and shortcodes `[jat_arcade]`, `[jat_arcade exhibit="spacewar" height="600px" mode="2d"]` and `[jat_arcade_scores game="spacewar"]`.
 - The museum runs in an iframe served by the plugin (`/?jat_arcade_museum=1`), so the theme's styles never clash with it.
