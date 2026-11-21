@@ -75,7 +75,7 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 - **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 41 exhibits at once and shaders never recompile mid-walk.
 - **Offscreen machines pause.** Only screens in view, within 26 m, run their demos and upload frames.
 - **2D mode.** `src/main.js` boots the 3D museum only when WebGL works. If WebGL is missing, the three.js download fails, or the GPU drops its context, every game opens in a plain 2D arcade (`src/flat.js`, which never loads three.js). Visitors can also choose it in settings or link to `#2d`.
-- **Zoom.** While playing, the game can fill the screen with crisp, whole-number pixel scaling. It's on by default on small screens.
+- **3D first, 2D full screen on request.** Walking and playing always start in the 3D view. While playing, the ⛶ 2D button (or F) shows the game alone with crisp, whole-number pixel scaling, using the browser's full screen where allowed; ◱ 3D, F or leaving full screen returns to the museum. Settings › Play in 2D instead switches the whole museum to the 2D arcade, with a Back to 3D button.
 - **Phones.** Safe areas for notches, dynamic viewport height, resize on rotation and toolbar changes, no accidental zoom or scroll, controls sized to the screen. Rendering pauses in background tabs.
 
 ## Visitor features

@@ -34,7 +34,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
       <div class="pixel brand">JAT ARCADE ARCHIVES</div>
       <div class="spacer"></div>
       <button class="btn" data-act="sound" aria-pressed="true">🔊</button>
-      <button class="btn" data-act="three" hidden>Try 3D</button>
+      <button class="btn" data-act="three" hidden>Back to 3D</button>
     </header>
     <p class="flat-reason" hidden></p>
     <main class="flat-list"></main>
