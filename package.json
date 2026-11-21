@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Build tooling for the JAT Arcade Archives WordPress plugin. The museum itself needs no build step.",
   "scripts": {
-    "build:plugin": "node tools/build-plugin.mjs"
+    "build:plugin": "node tools/build-plugin.mjs",
+    "build:itch": "node tools/build-itch.mjs"
   },
   "devDependencies": {
     "three": "0.187.0",

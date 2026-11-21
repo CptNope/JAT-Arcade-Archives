@@ -232,11 +232,14 @@ class JAT_Arcade_Embed {
 		}
 		$s      = jat_arcade_settings();
 		$config = array(
-			'scoresUrl' => 'nobody' === $s['submit'] && ! JAT_Arcade_Scores::counts() ? '' : rest_url( JAT_Arcade_Rest::NS . '/scores' ),
-			'nonce'     => wp_create_nonce( 'wp_rest' ),
-			'mode'      => '2d' === get_query_var( 'jat_arcade_mode' ) ? '2d' : '3d',
-			'canSubmit' => 'everyone' === $s['submit'] || ( 'members' === $s['submit'] && is_user_logged_in() ),
-			'site'      => get_bloginfo( 'name' ),
+			'scoresUrl'  => 'nobody' === $s['submit'] && ! JAT_Arcade_Scores::counts() ? '' : rest_url( JAT_Arcade_Rest::NS . '/scores' ),
+			'nonce'      => wp_create_nonce( 'wp_rest' ),
+			'levelsUrl'  => rest_url( JAT_Arcade_Rest::NS . '/levels' ),
+			'canPublish' => 'everyone' === $s['levels'] || ( 'members' === $s['levels'] && is_user_logged_in() ),
+			'moderated'  => (bool) $s['moderate'],
+			'mode'       => '2d' === get_query_var( 'jat_arcade_mode' ) ? '2d' : '3d',
+			'canSubmit'  => 'everyone' === $s['submit'] || ( 'members' === $s['submit'] && is_user_logged_in() ),
+			'site'       => get_bloginfo( 'name' ),
 		);
 		$head   = '<base href="' . esc_url( JAT_ARCADE_URL . 'museum/' ) . '">'
 			. '<script>window.JAT_ARCADE_CONFIG=' . wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ';</script>';

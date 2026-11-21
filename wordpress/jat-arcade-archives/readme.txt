@@ -14,10 +14,12 @@ A walk-through 3D museum of video game history where every machine is playable, 
 
 JAT Arcade Archives puts a playable museum of computer and video game history on your site. Visitors walk through rooms of era-style machines, from a 1947 cathode-ray tube game to the 8-bit consoles of the late 1980s, read the plaque on each one, and sit down to play.
 
-* 40 playable machines in seven wings, each an original recreation of its genre (no ROMs, no copyrighted characters).
+* 40 playable machines in seven wings, each an original recreation of its genre (no ROMs, no copyrighted characters), plus a Maker Lab where visitors build and share their own levels.
+* Look inside any machine: its model pulls apart and an animated diagram shows how the hardware worked.
 * High-score boards on every machine with arcade-style initials, shared by everyone who plays on your site.
 * A museum passport with a stamp for every machine, achievements and printable wing certificates.
 * A machine of the day and a narrated guided tour.
+* A Visitor Gallery: visitors publish Maker Lab levels for everyone to play, with an approval queue for the site owner.
 * Works on phones, tablets and desktops, with keyboard, touch and gamepad controls. Devices without 3D graphics get a 2D arcade with every game.
 * Everything is bundled with the plugin: no external scripts, fonts or tracking.
 
@@ -32,7 +34,7 @@ Choose who can save high scores, the board size and limits under **Settings › 
 
 = Privacy =
 
-The plugin stores the initials and score a visitor chooses to save, the time, and the user ID if they are logged in. To limit spam it keeps a short one-way hash of the visitor's address with each score; the address itself is never stored. Passport progress stays in the visitor's own browser.
+The plugin stores the initials and score a visitor chooses to save, and the title, initials and layout of any level a visitor publishes, the time, and the user ID if they are logged in. To limit spam it keeps a short one-way hash of the visitor's address with each score; the address itself is never stored. Passport progress stays in the visitor's own browser.
 
 == Installation ==
 

@@ -24,6 +24,7 @@ define( 'JAT_ARCADE_URL', plugin_dir_url( __FILE__ ) );
 
 require_once JAT_ARCADE_DIR . 'includes/class-jat-arcade-scores.php';
 require_once JAT_ARCADE_DIR . 'includes/class-jat-arcade-rest.php';
+require_once JAT_ARCADE_DIR . 'includes/class-jat-arcade-levels.php';
 require_once JAT_ARCADE_DIR . 'includes/class-jat-arcade-embed.php';
 require_once JAT_ARCADE_DIR . 'includes/class-jat-arcade-admin.php';
 
@@ -31,13 +32,14 @@ register_activation_hook( __FILE__, array( 'JAT_Arcade_Scores', 'install' ) );
 
 add_action( 'plugins_loaded', array( 'JAT_Arcade_Scores', 'maybe_upgrade' ) );
 add_action( 'rest_api_init', array( 'JAT_Arcade_Rest', 'register_routes' ) );
+add_action( 'rest_api_init', array( 'JAT_Arcade_Levels', 'register_routes' ) );
 JAT_Arcade_Embed::init();
 JAT_Arcade_Admin::init();
 
 /**
  * Plugin settings with defaults.
  *
- * @return array{submit:string,board_size:int,rate_limit:int,height:string,max_score:int}
+ * @return array{submit:string,board_size:int,rate_limit:int,height:string,max_score:int,levels:string,moderate:bool}
  */
 function jat_arcade_settings() {
 	$defaults = array(
@@ -46,6 +48,8 @@ function jat_arcade_settings() {
 		'rate_limit' => 12,         // score submissions per visitor per 10 minutes.
 		'height'     => '80vh',
 		'max_score'  => 10000000,
+		'levels'     => 'everyone', // who can publish Maker Lab levels: everyone | members | nobody.
+		'moderate'   => true,       // new levels wait for approval.
 	);
 	$saved    = get_option( 'jat_arcade_settings', array() );
 	return wp_parse_args( is_array( $saved ) ? $saved : array(), $defaults );

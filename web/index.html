@@ -198,6 +198,7 @@
   <div class="row">
     <button class="btn primary" id="playBtn">▶ Play</button>
     <button class="btn" id="plaqueBtn">Read plaque</button>
+    <button class="btn" id="insideBtn" title="See how this machine works">🔍 Inside</button>
     <span class="hint">E to play</span>
   </div>
 </div>
@@ -214,7 +215,7 @@
 </div>
 
 <canvas id="zoom" aria-label="Game screen, zoomed"></canvas>
-<div id="playbar"><span id="playHelp"></span><button class="btn" id="zoomBtn" aria-pressed="false">Zoom</button><button class="btn" id="exitBtn">Stand up ✕</button></div>
+<div id="playbar"><span id="playHelp"></span><button class="btn" id="galleryBtn" hidden title="Play levels made by visitors">🖼<span class="lbl"> Gallery</span></button><button class="btn" id="publishBtn" hidden title="Publish your level to the gallery">📤<span class="lbl"> Publish</span></button><button class="btn" id="shareBtn" hidden title="Copy a link to your level">🔗<span class="lbl"> Share</span></button><button class="btn" id="zoomBtn" aria-pressed="false">Zoom</button><button class="btn" id="exitBtn">Stand up ✕</button></div>
 
 <div id="stick" class="touch walk" aria-hidden="true"><i></i></div>
 <div id="pad" class="touch play" aria-hidden="true">

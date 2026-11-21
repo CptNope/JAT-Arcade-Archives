@@ -4,6 +4,8 @@ import { EXHIBITS, WINGS, NOTE, RECON_NOTE } from './exhibits.js';
 import { GAMES } from './registry.js';
 import { Sfx } from './sfx.js';
 import { initVisitor } from './visitor.js';
+import { initInside } from './inside.js';
+import { shareLevel } from './share.js';
 import { NO_INPUT } from './games/base.js';
 
 const KEYMAP = {
@@ -40,6 +42,10 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
       <div class="flat-bar">
         <button class="btn" data-act="back">← All machines</button>
         <strong class="flat-title"></strong>
+        <button class="btn" data-act="gallery" hidden title="Play levels made by visitors">🖼</button>
+        <button class="btn" data-act="publish" hidden title="Publish your level">📤</button>
+        <button class="btn" data-act="share" hidden title="Copy a link to your level">🔗</button>
+        <button class="btn" data-act="inside" title="How this machine works">🔍</button>
         <button class="btn" data-act="about" aria-expanded="false">About</button>
       </div>
       <div class="flat-stage"><canvas class="flat-screen" aria-label="Game screen"></canvas></div>
@@ -73,6 +79,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     host: {
       go: async (ex) => { open(ex); },
       play: async (ex) => { open(ex); game.start(); },
+      makerGame: () => { if (!games.has('makerlab')) games.set('makerlab', new GAMES.makerlab(sfx)); return games.get('makerlab'); },
       isPlaying: () => !!game && game.mode !== 'attract',
     },
   });
@@ -113,6 +120,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     for (const t of [...ex.plaque, ex.play, ex.recon ? RECON_NOTE : NOTE]) { const p = document.createElement('p'); p.textContent = t; about.appendChild(p); }
     about.hidden = true; $('[data-act="about"]').setAttribute('aria-expanded', 'false');
     list.hidden = true; $('.flat-play').hidden = false; root.classList.add('playing');
+    for (const a of ['share', 'gallery', 'publish']) $(`[data-act="${a}"]`).hidden = !game.levelCode;
     // absolute URL: the WordPress embed sets a <base>
     try { history.replaceState(null, '', location.pathname + location.search + '#' + ex.id); } catch { /* sandboxed */ }
     fit(); scrollTo(0, 0);
@@ -122,7 +130,12 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
     $('.flat-play').hidden = true; list.hidden = false; root.classList.remove('playing');
     held.clear(); taps.clear(); padHeld.clear();
   }
-  $('[data-act="back"]').addEventListener('click', close);
+  $('[data-act="back"]').addEventListener('click', () => { inside.close(); close(); });
+  const inside = initInside();
+  $('[data-act="share"]').addEventListener('click', () => game && shareLevel(game, visitor.toast));
+  $('[data-act="gallery"]').addEventListener('click', () => visitor.openGallery());
+  $('[data-act="publish"]').addEventListener('click', () => visitor.openPublish());
+  $('[data-act="inside"]').addEventListener('click', () => { if (!current) return; if (inside.isOpen) inside.close(); else { inside.open(current); visitor.passport.readPlaque(current.id); } });
   $('[data-act="about"]').addEventListener('click', (e) => {
     const about = $('.flat-about'); about.hidden = !about.hidden;
     if (!about.hidden && current) visitor.passport.readPlaque(current.id);
@@ -196,7 +209,7 @@ export function startFlat({ reason = 'user', sfx = new Sfx() } = {}) {
 
   // open the exhibit named in the address, if any
   const id = location.hash.slice(1);
-  const ex = EXHIBITS.find(e => e.id === id);
+  const ex = EXHIBITS.find(e => e.id === id || (id.startsWith('maker=') && e.id === 'makerlab'));
   if (ex) open(ex);
   window.JATArcade = { mode: '2d', visitor, open: (id2) => { const e = EXHIBITS.find(x => x.id === id2); if (e) open(e); }, close, games };
 }

@@ -35,6 +35,7 @@ Visitors arrive facing **The Pioneers (1947–1962)**, then turn around to **The
 | 1982 | Choplifter | beige home computer | **Chopper Rescue** |
 | 1983 | Lode Runner | silver home computer | **Gold Digger** |
 | 1984 | Boulder Dash | black home computer | **Rock & Gem** |
+| 1983 | Construction sets *(8-Bit Console room, centre)* | beige computer | **Maker Lab**: build a level, play it, share it as a link |
 | 1984 | Excitebike *(8-Bit Console room)* | TV cabinet + grey console + pads | **Dirt Jump** |
 | 1985 | Super Mario Bros. | TV cabinet + charcoal console | **Block Hopper** |
 | 1985 | Gradius | TV cabinet + black console | **Star Lancer** (power meter) |
@@ -71,7 +72,7 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 ## Works on every device
 
 - **Adaptive quality.** In Auto mode the resolution, and then the glow, drop when the frame rate does. You can also pick High or Low in ⚙ settings (remembered per browser).
-- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 40 exhibits at once and shaders never recompile mid-walk.
+- **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 41 exhibits at once and shaders never recompile mid-walk.
 - **Offscreen machines pause.** Only screens in view, within 26 m, run their demos and upload frames.
 - **2D mode.** `src/main.js` boots the 3D museum only when WebGL works. If WebGL is missing, the three.js download fails, or the GPU drops its context, every game opens in a plain 2D arcade (`src/flat.js`, which never loads three.js). Visitors can also choose it in settings or link to `#2d`.
 - **Zoom.** While playing, the game can fill the screen with crisp, whole-number pixel scaling. It's on by default on small screens.
@@ -80,9 +81,12 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 ## Visitor features
 
 - **High scores:** a top-10 board on every machine (all time and today) with arcade-style initials.
-- **Passport:** a stamp for each machine you play, 15 achievements, and a printable certificate for each finished wing.
+- **Passport:** a stamp for each machine you play, 16 achievements, and a printable certificate for each finished wing.
 - **Machine of the day:** the same featured machine for every visitor, with a streak achievement.
 - **Guided tour:** walks you through every machine in date order, with spoken narration and captions.
+
+- **Visitor Gallery:** from the Maker Lab, 🖼 Gallery plays featured levels, levels from other visitors (on WordPress) and your own; 📤 Publish shares yours. On WordPress, new levels wait for the site owner's approval by default (Settings › JAT Arcade).
+- **Inside the machine:** the 🔍 button pulls a machine's model apart into an exploded view and opens an animated diagram of how its hardware works: raster TV, vector beam, oscilloscope, analog tube, lamp panels, memory dots, teleprinter, character terminal or LCD.
 
 Everything works in 3D and 2D mode. Progress stays in the visitor's browser; scores go to the site when the page sets `window.JAT_ARCADE_CONFIG = { scoresUrl, nonce }` (the WordPress plugin does this).
 
@@ -95,7 +99,9 @@ npm install
 npm run build:plugin      # -> dist/jat-arcade-archives.zip
 ```
 
-The build copies the museum in and bundles three.js (only the add-ons used) and the fonts locally, since WordPress.org plugins can't load code or fonts from a CDN. GitHub Actions builds the zip on every push and attaches it to `v*` releases.
+For itch.io, `npm run build:itch` makes `dist/jat-arcade-archives-itch.zip`: an HTML5 game with `index.html` at the root and nothing loaded from a CDN, ready to upload as a "played in the browser" file.
+
+The plugin build copies the museum in and bundles three.js (only the add-ons used) and the fonts locally, since WordPress.org plugins can't load code or fonts from a CDN. GitHub Actions builds the zip on every push and attaches it to `v*` releases.
 
 - **Block** "JAT Arcade Archives" and shortcodes `[jat_arcade]`, `[jat_arcade exhibit="spacewar" height="600px" mode="2d"]` and `[jat_arcade_scores game="spacewar"]`.
 - The museum runs in an iframe served by the plugin (`/?jat_arcade_museum=1`), so the theme's styles never clash with it.
