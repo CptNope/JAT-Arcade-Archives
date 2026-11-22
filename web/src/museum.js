@@ -506,10 +506,21 @@ plaqueEl.addEventListener('click', (e) => { if (e.target === plaqueEl) closePlaq
 $('#exitBtn').addEventListener('click', () => standUp());
 
 // ---------- player --------------------------------------------------------------------------
-const player = { pos: new THREE.Vector3(0, EYE, 0.2), yaw: Math.PI, pitch: -0.05 }; // arrive facing the Pioneers
+const player = { pos: new THREE.Vector3(0, EYE, 0.2), yaw: Math.PI, pitch: -0.05 }; // moved to the earliest machine below
 function applyWalkCamera() {
   camera.position.copy(player.pos);
   camera.quaternion.setFromEuler(new THREE.Euler(player.pitch, player.yaw, 0, 'YXZ'));
+}
+// Visitors arrive in front of the earliest machine (the 1947 cathode-ray tube game), so the walk
+// through the museum runs in date order from the start.
+{
+  const first = exhibits.reduce((best, e, i) => (best < 0 || e.year < exhibits[best].year ? i : best), -1);
+  if (first >= 0) {
+    const spot = standingSpot(first), ex = exhibits[first];
+    player.pos.copy(spot);
+    player.yaw = Math.atan2(-(ex.pos[0] - spot.x), -(ex.pos[2] - spot.z));
+    player.pitch = -0.12;
+  }
 }
 applyWalkCamera();
 

@@ -5,11 +5,13 @@
   "description": "Build tooling for the JAT Arcade Archives WordPress plugin. The museum itself needs no build step.",
   "scripts": {
     "build:plugin": "node tools/build-plugin.mjs",
-    "build:itch": "node tools/build-itch.mjs"
+    "build:itch": "node tools/build-itch.mjs",
+    "build:offline": "node tools/build-offline.mjs"
   },
   "devDependencies": {
-    "three": "0.187.0",
     "@fontsource/press-start-2p": "^5.0.0",
-    "@fontsource/space-grotesk": "^5.0.0"
+    "@fontsource/space-grotesk": "^5.0.0",
+    "esbuild": "^0.25.12",
+    "three": "0.187.0"
   }
 }
