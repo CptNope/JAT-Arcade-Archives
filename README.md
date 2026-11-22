@@ -75,7 +75,8 @@ The site appears at `https://cptnope.github.io/JAT-Arcade-Archives/`. All paths 
 - **Light pool.** A fixed set of lights is moved to whichever room you're in, so the GPU never lights all 41 exhibits at once and shaders never recompile mid-walk.
 - **Offscreen machines pause.** Only screens in view, within 26 m, run their demos and upload frames.
 - **2D mode.** `src/main.js` boots the 3D museum only when WebGL works. If WebGL is missing, the three.js download fails, or the GPU drops its context, every game opens in a plain 2D arcade (`src/flat.js`, which never loads three.js). Visitors can also choose it in settings or link to `#2d`.
-- **Zoom.** While playing, the game can fill the screen with crisp, whole-number pixel scaling. It's on by default on small screens.
+- **Start at the beginning.** Visitors arrive in front of the earliest machine, the 1947 cathode-ray tube game, so a walk through the hall runs in date order. Links to a machine (`#spacewar`) still go straight to it.
+- **3D first, 2D full screen on request.** Walking and playing always start in the 3D view. While playing, the ⛶ 2D button (or F) shows the game alone with crisp, whole-number pixel scaling, using the browser's full screen where allowed; ◱ 3D, F or leaving full screen returns to the museum. Settings › Play in 2D instead switches the whole museum to the 2D arcade, with a Back to 3D button.
 - **Phones.** Safe areas for notches, dynamic viewport height, resize on rotation and toolbar changes, no accidental zoom or scroll, controls sized to the screen. Rendering pauses in background tabs.
 
 ## Visitor features
@@ -100,6 +101,8 @@ npm run build:plugin      # -> dist/jat-arcade-archives.zip
 ```
 
 For itch.io, `npm run build:itch` makes `dist/jat-arcade-archives-itch.zip`: an HTML5 game with `index.html` at the root and nothing loaded from a CDN, ready to upload as a "played in the browser" file.
+
+For a download that runs offline, `npm run build:offline` makes `dist/jat-arcade-archives-offline.zip`. Unzip it and double-click `Play JAT Arcade Archives.html`: it needs no server, no internet and no install. Browsers block ES modules and web fonts on `file://` pages, so this build bundles every module, three.js included, into one classic script (`museum.js`, with esbuild) and inlines the fonts. Upload it to itch.io as a downloadable file for Windows, macOS and Linux.
 
 The plugin build copies the museum in and bundles three.js (only the add-ons used) and the fonts locally, since WordPress.org plugins can't load code or fonts from a CDN. GitHub Actions builds the zip on every push and attaches it to `v*` releases.
 

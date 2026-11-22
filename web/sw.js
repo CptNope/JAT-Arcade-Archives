@@ -1,5 +1,5 @@
 // Offline cache for the PWA build. Bump VERSION whenever files change.
-const VERSION = 'jat-arcade-v12';
+const VERSION = 'jat-arcade-v13';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icons/icon.svg',
   './src/main.js', './src/museum.js', './src/flat.js', './src/visitor.js', './src/inside.js', './src/share.js', './src/registry.js', './src/machines.js', './src/crt.js', './src/sfx.js', './src/exhibits.js',

@@ -506,10 +506,21 @@ plaqueEl.addEventListener('click', (e) => { if (e.target === plaqueEl) closePlaq
 $('#exitBtn').addEventListener('click', () => standUp());
 
 // ---------- player --------------------------------------------------------------------------
-const player = { pos: new THREE.Vector3(0, EYE, 0.2), yaw: Math.PI, pitch: -0.05 }; // arrive facing the Pioneers
+const player = { pos: new THREE.Vector3(0, EYE, 0.2), yaw: Math.PI, pitch: -0.05 }; // moved to the earliest machine below
 function applyWalkCamera() {
   camera.position.copy(player.pos);
   camera.quaternion.setFromEuler(new THREE.Euler(player.pitch, player.yaw, 0, 'YXZ'));
+}
+// Visitors arrive in front of the earliest machine (the 1947 cathode-ray tube game), so the walk
+// through the museum runs in date order from the start.
+{
+  const first = exhibits.reduce((best, e, i) => (best < 0 || e.year < exhibits[best].year ? i : best), -1);
+  if (first >= 0) {
+    const spot = standingSpot(first), ex = exhibits[first];
+    player.pos.copy(spot);
+    player.yaw = Math.atan2(-(ex.pos[0] - spot.x), -(ex.pos[2] - spot.z));
+    player.pitch = -0.12;
+  }
 }
 applyWalkCamera();
 
@@ -549,10 +560,15 @@ function sitDown(i) {
   walkPose.quat.copy(camera.quaternion);
   active = i;
   document.body.classList.add('playing');
-  $('#playHelp').textContent = exhibits[i].play + '  ·  Esc to stand up';
+  $('#playHelp').textContent = exhibits[i].play + '  ·  F for 2D full screen  ·  Esc to stand up';
   for (const b of ['#shareBtn', '#galleryBtn', '#publishBtn']) $(b).hidden = !exhibits[i].game.levelCode;
   showFocus(-1); settings.hidden = true;
-  startTween(playPose(i), () => { exhibits[i].game.start(); if (Math.min(innerWidth, innerHeight) < 520) setZoom(true); });
+  // always start in the 3D view; small screens get a one-time tip about the 2D full-screen view
+  startTween(playPose(i), () => {
+    exhibits[i].game.start();
+    let tipped = false; try { tipped = localStorage.getItem('jat-2d-tip') === '1'; localStorage.setItem('jat-2d-tip', '1'); } catch { /* ignore */ }
+    if (!tipped && Math.min(innerWidth, innerHeight) < 520) visitor.toast('⛶', 'Want a bigger screen?', 'Tap 2D in the bar above to fill the screen with the game. Tap 3D to come back.', 5000);
+  });
 }
 function standUp(instant = false) {
   if (active < 0) return;
@@ -591,6 +607,7 @@ addEventListener('keydown', (e) => {
   if (active >= 0 && (k || e.code === 'Escape')) e.preventDefault();
   if (e.code === 'Escape' || e.code === 'Backspace') { if (active >= 0) standUp(); else toggleMenu(false); return; }
   if (e.code === 'KeyE' && active < 0 && focused >= 0) { sitDown(focused); return; }
+  if (e.code === 'KeyF' && active >= 0 && !tween) { e.preventDefault(); setZoom(!zoomOn); return; }
   if (k) { if (!e.repeat) taps.add(k); held.add(k); }
 });
 addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) held.delete(k); });
@@ -803,11 +820,21 @@ function drawZoom() {
   zoomCtx.fillStyle = '#000'; zoomCtx.fillRect(0, 0, zoomEl.width, zoomEl.height);
   zoomCtx.drawImage(g.canvas, Math.floor((zoomEl.width - w) / 2), Math.floor((zoomEl.height - h) / 2), w, h);
 }
+// 2D full screen: the game alone, filling the screen (and the whole display where the browser allows it)
 function setZoom(on) {
+  if (on && active < 0) return;
   zoomOn = on; document.body.classList.toggle('zoomed', on);
-  $('#zoomBtn').setAttribute('aria-pressed', String(on));
-  $('#zoomBtn').textContent = on ? '3D view' : 'Zoom';
+  const b = $('#zoomBtn');
+  b.setAttribute('aria-pressed', String(on));
+  b.innerHTML = on ? '◱ <span class="lbl-long">3D view</span><span class="lbl-short">3D</span>' : '⛶ <span class="lbl-long">2D full screen</span><span class="lbl-short">2D</span>';
+  b.title = on ? 'Back to the 3D museum view (F)' : 'Show the game alone, full screen (F)';
+  try {
+    if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+    else if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  } catch { /* fullscreen not allowed here: the 2D view still fills the page */ }
 }
+// leaving browser full screen (Esc, swipe) also returns to the 3D view
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && zoomOn) setZoom(false); });
 $('#zoomBtn').addEventListener('click', () => setZoom(!zoomOn));
 $('#shareBtn').addEventListener('click', () => { if (active >= 0) shareLevel(exhibits[active].game, visitor.toast); });
 $('#galleryBtn').addEventListener('click', () => visitor.openGallery());

@@ -1,4 +1,4 @@
-name: Build WordPress plugin and itch.io package
+name: Build WordPress plugin and itch.io packages
 
 on:
   push:
@@ -30,13 +30,14 @@ jobs:
           composer global require --quiet wp-coding-standards/wpcs:"^3.0"
           "$(composer global config bin-dir --absolute --quiet)/phpcs" --standard=WordPress --extensions=php wordpress/jat-arcade-archives
       - name: Package
-        run: npm ci && npm run build:plugin && npm run build:itch
+        run: npm ci && npm run build:plugin && npm run build:itch && npm run build:offline
       - uses: actions/upload-artifact@v4
         with:
           name: jat-arcade-archives
           path: |
             dist/jat-arcade-archives.zip
             dist/jat-arcade-archives-itch.zip
+            dist/jat-arcade-archives-offline.zip
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
@@ -44,3 +45,4 @@ jobs:
           files: |
             dist/jat-arcade-archives.zip
             dist/jat-arcade-archives-itch.zip
+            dist/jat-arcade-archives-offline.zip

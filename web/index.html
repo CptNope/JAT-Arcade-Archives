@@ -69,14 +69,17 @@
   #playbar { position:fixed; top:calc(12px + var(--sat)); left:50%; transform:translateX(-50%); display:none; gap:10px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px 8px 14px; z-index:11; font-size:13px; max-width:calc(100% - 24px); }
   body.playing #playbar { display:flex; }
   body.playing #top, body.playing #focus { display:none; }
-  #playbar span { color:var(--muted); }
+  #playHelp { color:var(--muted); }
+  body.zoomed #playHelp { display:none; }
+  .lbl-short { display:none; }
+  @media (max-width: 600px) { .lbl-long { display:none; } .lbl-short { display:inline; } }
 
   /* touch controls */
   .touch { display:none; }
   body.is-touch .touch.walk { display:block; }
   body.is-touch.playing .touch.walk { display:none; }
   body.is-touch.playing .touch.play { display:flex; }
-  body.is-touch.playing #playbar span { display:none; }
+  body.is-touch.playing #playHelp { display:none; }
   #stick { position:fixed; left:calc(24px + var(--sal)); bottom:calc(24px + var(--sab)); width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.18); z-index:9; touch-action:none; }
   #stick i { position:absolute; left:50%; top:50%; width:52px; height:52px; margin:-26px; border-radius:50%; background:rgba(0,229,255,.35); border:2px solid var(--cyan); }
   body.is-touch #focus { left:auto; right:12px; bottom:12px; transform:translateY(20px); width:min(380px, calc(100% - 180px)); padding:10px 12px; }
@@ -214,8 +217,8 @@
   </article>
 </div>
 
-<canvas id="zoom" aria-label="Game screen, zoomed"></canvas>
-<div id="playbar"><span id="playHelp"></span><button class="btn" id="galleryBtn" hidden title="Play levels made by visitors">🖼<span class="lbl"> Gallery</span></button><button class="btn" id="publishBtn" hidden title="Publish your level to the gallery">📤<span class="lbl"> Publish</span></button><button class="btn" id="shareBtn" hidden title="Copy a link to your level">🔗<span class="lbl"> Share</span></button><button class="btn" id="zoomBtn" aria-pressed="false">Zoom</button><button class="btn" id="exitBtn">Stand up ✕</button></div>
+<canvas id="zoom" aria-label="Game screen, 2D full screen"></canvas>
+<div id="playbar"><span id="playHelp"></span><button class="btn" id="galleryBtn" hidden title="Play levels made by visitors">🖼<span class="lbl"> Gallery</span></button><button class="btn" id="publishBtn" hidden title="Publish your level to the gallery">📤<span class="lbl"> Publish</span></button><button class="btn" id="shareBtn" hidden title="Copy a link to your level">🔗<span class="lbl"> Share</span></button><button class="btn" id="zoomBtn" aria-pressed="false" title="Show the game alone, full screen (F)">⛶ <span class="lbl-long">2D full screen</span><span class="lbl-short">2D</span></button><button class="btn" id="exitBtn">Stand up ✕</button></div>
 
 <div id="stick" class="touch walk" aria-hidden="true"><i></i></div>
 <div id="pad" class="touch play" aria-hidden="true">
